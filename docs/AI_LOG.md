@@ -199,3 +199,10 @@
 - **Did:** D30 (note autofill for "Exercise N", duplicate rule ignores differently-noted papers). 52 node tests pass; tsc --strict on lib files. UNTESTED: ReviewCard change (CI builds).
 - **Existing rows #3-#6 have blank notes:** the admin types "Exercise N" in each card and uses "Save only", then Approves (check the PDF preview to see which exercise it is).
 - **Open:** the 6 other batch-1 papers' status not stated by the user (assumed approved); batch 2/3 not yet uploaded; takedown page, branding (Q1).
+
+### Session 25 – 2026-10-05 – Takedown/privacy page + builder credit
+- **User decisions:** takedown contact = iistqps@gmail.com AND GitHub issues; keep the name Campus QPS, but the user (builder) wants their university to remember who built it.
+- **Did:** `TakedownPage.tsx` (/#/takedown), `AboutPage.tsx` (/#/about), footer with links + "Built by", `university.contact` + `university.credits`, humans.txt, meta author, README credit, docs/TAKEDOWN_PROCEDURE.md, D31, `tests/config.test.mts`.
+- **Verified here:** 54 node tests pass. UNTESTED: the two pages and footer (React; CI builds them).
+- **To confirm with user:** full name shown (assumed "Harsha Maloth" from the GitHub handle); GitHub Issues enabled on the repo; the batch 2/3 and lab-card steps from session 24 are still pending on their side.
+- **Next step:** user pushes; batches 2/3; optional LICENSE choice (copyright line with the builder's name).

@@ -103,3 +103,11 @@ button:not(.link-btn):not(.icon-btn) {
 .similar-box { margin-top: 0.75rem; padding: 0.6rem 0.75rem; border: 1px solid #7a6a30; border-radius: 8px; background: rgba(255, 212, 138, 0.06); p { margin: 0.25rem 0 0.5rem; }
   .similar-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.3rem; } }
 button.danger { border-color: #7a3030; color: #ff8a8a; &:hover:not(:disabled) { border-color: #ff8a8a; } }
+
+// About / takedown pages
+.doc-page { line-height: 1.65;
+  h2 { margin: 1.75rem 0 0.4rem; font-size: 1.15rem; }
+  p, li { max-width: 62ch; }
+  ul { padding-left: 1.2rem; }
+  .callout { background: $panel; border: 1px solid $border; border-radius: 10px; padding: 0.75rem 1rem; margin: 1rem 0; p { margin: 0.2rem 0; } } }
+.site-footer p { margin: 0.2rem 0; }

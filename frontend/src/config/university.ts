@@ -2,6 +2,20 @@
 export const university = {
   name: "Campus QPS",
   tagline: "Search for previous year question papers.",
+
+  /** Who to contact for removal requests (takedown page). */
+  contact: {
+    email: "iistqps@gmail.com",
+    issuesUrl: "https://github.com/iist-oss/iist-qps/issues/new",
+  },
+
+  /** Credit shown on the About page, the footer, README and humans.txt. CONFIRM the full name. */
+  credits: {
+    builderName: "Harsha Maloth",
+    builderGithub: "https://github.com/harsha-maloth",
+    builtYear: 2026,
+    institute: "IIST",
+  },
   /** Shown on the login page. Real enforcement is in the DB:
    *  app_settings.allowed_email_domain (comma-separated) + the sign-up trigger from migration 0005 + email_domain_ok (0006). Keep in sync. */
   allowedEmailDomains: ["iist.ac.in", "ug.iist.ac.in"] as string[],

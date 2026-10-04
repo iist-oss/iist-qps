@@ -1,0 +1,9 @@
+/* TEAM */
+Builder: Harsha Maloth
+GitHub: https://github.com/harsha-maloth
+Institute: IIST
+
+/* SITE */
+Name: Campus QPS
+Source: https://github.com/iist-oss/iist-qps
+Built: 2026

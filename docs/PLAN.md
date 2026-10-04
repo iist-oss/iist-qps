@@ -70,7 +70,7 @@ the latest CI result, if any, and fixing failures first.
 - [ ] Source-specific scraper only when Q2 is answered
 
 ### B8 Polish
-- [ ] Mobile pass, a11y pass, privacy/takedown page, `docs/TEST_CHECKLIST.md`, maintainer README
+- [ ] Mobile pass, a11y pass, [~] privacy/takedown page + About/credits (session 25), `docs/TEST_CHECKLIST.md`, maintainer README
 
 ## Definition of done
 Student searches anonymously; signs in; uploads a PDF; admin approves; paper appears in
