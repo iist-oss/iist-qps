@@ -91,3 +91,5 @@ button:not(.link-btn):not(.icon-btn) {
 .upload-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
 .muted { color: $muted; }
 .ok-text { color: #7fd99a; }
+
+.status-box { background: $panel; border: 1px solid $border; border-radius: 8px; padding: 0.75rem; white-space: pre-wrap; word-break: break-word; font-size: 0.85rem; margin: 1rem 0; }

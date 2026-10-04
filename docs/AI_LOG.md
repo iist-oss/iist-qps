@@ -138,3 +138,11 @@
 - **Not covered:** two users uploading the same PDF (file_hash stays null for uploads; admin similar-paper check comes in B5). Storage uploads are not covered by the daily cap (known limitation from session 7).
 - **Next step:** push, read CI; user tests an upload on production; then B5 admin (review queue, approve with signed-URL preview, pending badge in header, trash).
 - **Blockers:** none.
+
+### Session 15 – 2026-10-05 – Production outage diagnosis: /status page
+- **Symptom (user, live site):** home page shows "Serving … papers across … courses" (stats never load) and sign-in says "Something went wrong". Supabase project is Active; `https://<ref>.supabase.co/auth/v1/health` answers `No API key found in request` (project reachable). The "Supabase is not configured" banner is NOT shown, so URL and key are non-empty in the build. Cause still UNKNOWN (suspects: wrong/rotated key or key for another project, publishable-key format with supabase-js, network block).
+- **Did:** Added `/#/status` (`pages/StatusPage.tsx`): prints URL, key shape (kind, length, first 6 chars, JWT role + project ref; never the full key), flags mismatches, runs 3 probes with the real apikey (auth health, auth settings, get_stats) and a "send test code" button that prints the raw Supabase error (status, name, message). Pure logic in `lib/diagnose.ts` + `tests/diagnose.test.mts` (4 tests). Fixed favicon path in `index.html` (`/logo.svg` -> `./logo.svg`, broke under the /iist-qps/ subpath).
+- **Verified here:** 27 node tests pass (23 + 4); `tsc --strict` passes on `lib/diagnose.ts`.
+- **UNTESTED:** StatusPage.tsx, App.tsx route, SCSS (no npm/vite here; CI will build).
+- **Next step:** user pushes, opens https://iist-oss.github.io/iist-qps/#/status, taps "Run checks", sends a screenshot; fix per result. Then B5 admin.
+- **Blockers:** the outage cause.

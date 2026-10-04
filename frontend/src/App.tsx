@@ -6,6 +6,7 @@ import SearchPage from "./pages/SearchPage";
 import UploadPage from "./pages/UploadPage";
 import AdminPage from "./pages/AdminPage";
 import LoginPage from "./pages/LoginPage";
+import StatusPage from "./pages/StatusPage";
 import { isConfigured } from "./lib/supabase";
 import { university } from "./config/university";
 
@@ -23,6 +24,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<SearchPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/status" element={<StatusPage />} />
             <Route path="/upload" element={<UploadPage />} />
             <Route path="/admin/*" element={<AdminPage />} />
             <Route path="*" element={<SearchPage />} />
