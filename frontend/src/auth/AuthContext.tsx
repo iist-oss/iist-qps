@@ -1,20 +1,28 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 import { university } from "../config/university";
+import { friendlyAuthError, looksLikeEmail, normalizeEmail } from "../lib/email";
 
 interface AuthState {
   user: User | null;
   session: Session | null;
   isAdmin: boolean; // UI hint only; real enforcement is RLS + Edge Functions
   loading: boolean;
-  signIn: () => Promise<void>;
+  /** Goes to the sign-in page (email one-time code, D21). */
+  signIn: () => void;
+  /** Emails a one-time code. Returns an error message, or null on success. */
+  sendCode: (email: string) => Promise<string | null>;
+  /** Checks the code. Returns an error message, or null on success (session is then set). */
+  verifyCode: (email: string, code: string) => Promise<string | null>;
   signOut: () => Promise<void>;
 }
 
 const AuthCtx = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -43,18 +51,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session,
     isAdmin,
     loading,
-    signIn: async () => {
-      await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: window.location.origin + window.location.pathname,
-          // Google allows only one `hd` value, so with several domains use "*" (= any Workspace account)
-          queryParams: university.allowedEmailDomains.length > 0 ? { hd: "*" } : undefined,
-        },
+    signIn: () => navigate("/login"),
+    sendCode: async (raw) => {
+      const email = normalizeEmail(raw);
+      if (!looksLikeEmail(email)) return "Enter a valid email address.";
+      // Ask the DB first so outsiders get a clear message (the sign-up trigger is the real lock).
+      const { data: allowed, error: rpcErr } = await supabase.rpc("email_domain_ok", { p_email: email });
+      if (!rpcErr && allowed === false) {
+        const list = university.allowedEmailDomains.map((d) => "@" + d).join(" or ");
+        return `Only ${list} email addresses can sign in.`;
+      }
+      const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+      if (error) console.error(error.message);
+      return error ? friendlyAuthError(error.message) : null;
+    },
+    verifyCode: async (raw, code) => {
+      const { error } = await supabase.auth.verifyOtp({
+        email: normalizeEmail(raw), token: code.replace(/\s+/g, ""), type: "email",
       });
+      if (error) console.error(error.message);
+      return error ? friendlyAuthError(error.message) : null;
     },
     signOut: async () => { await supabase.auth.signOut(); },
-  }), [session, isAdmin, loading]);
+  }), [session, isAdmin, loading, navigate]);
 
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
 }

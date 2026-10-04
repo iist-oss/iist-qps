@@ -24,8 +24,8 @@ semester ('' | odd | even), note, file_path, from_library, file_hash, uploaded_b
 upload_timestamp, approve_status, approved_by, is_deleted, fts (generated tsvector).
 Table `admins`: user_id. Table `app_settings` (daily_upload_cap, allowed_email_domain).
 Edge Functions: approve-paper, delete-paper, notify-upload (contract: docs/EDGE_FUNCTIONS.md). file_path = "<bucket>/<path>".
-Functions: `is_admin()`, `email_allowed()`, RPCs `search_papers`, `get_stats`. Trigger: upload cap.
-Frontend: frontend/ (Vite, HashRouter, PKCE auth, config in src/config/university.ts, pure helpers in src/lib/papers.ts, `npm test`).
+Functions: `is_admin()`, `email_allowed()`, `email_in_allowed_list()`, RPCs `search_papers`, `get_stats`, `email_domain_ok`. Trigger: upload cap.
+Frontend: frontend/ (Vite, HashRouter, email-OTP login (D21), config in src/config/university.ts, pure helpers in src/lib/papers.ts, `npm test`).
 Tests: `supabase/tests/*.sql` (pgTAP), run in CI. See PLAN.md 'Verification strategy'.
 Buckets: `unapproved` (private), `approved` (public). PDFs only, 10 MiB max. Users may only insert rows whose `file_path` is `unapproved/<their uid>/...`; trashed uploads live in `unapproved/trash/<id>.pdf`.
 Local SQL check without Supabase: `tools/local-db-test/run.sh` (plain Postgres + stubs + pgTAP shim).

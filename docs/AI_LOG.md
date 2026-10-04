@@ -117,3 +117,10 @@
 - **UNTESTED on real Supabase:** creating a trigger on auth.users from a migration (CI will show), and what the user sees when blocked. Frontend change small, verified only by CI.
 - **Production steps for user:** run 0005 + the settings UPDATE in the SQL editor (file given in chat), then push the repo.
 - **Risk:** if the admin's own Google account is not on an allowed domain they cannot sign up; fallback = set allowed_extra_emails to that address.
+
+### Session 12 – 2026-10-04 – Email OTP login
+- **Did:** Planned and implemented OTP login (D21). Found that the working folder ALREADY contained a parallel implementation written at 16:59 (migration 0006 `email_domain_ok`, pgTAP test, `lib/email.ts` + test, OTP `AuthContext`, `/login` route in App.tsx, university.ts comment). Kept it as the base. Added `pages/LoginPage.tsx` (email step, code step, resend cooldown 30 s, change email) and login-form styles. A LoginPage.tsx from that parallel work may have existed and was OVERWRITTEN by mine; its content is lost, so compare if something looks missing. Removed my own duplicate `lib/auth.ts` + test. Updated DECISIONS D21, PLAN B3b, USER_ACTIONS 11-13, AI_CONTEXT, LOCAL_SETUP.
+- **Verified here:** 9 node tests pass (papers + email). Nothing else could run (no npm, no Postgres in this session).
+- **UNTESTED:** `LoginPage.tsx` and all React code (no tsc/vite build here), migration 0006 + its pgTAP test, real email delivery.
+- **Needs from user:** run 0006 in the SQL editor; enable Email provider; configure SMTP + edit both templates; test delivery (USER_ACTIONS 11-13).
+- **Next step:** push, read CI, then B4 upload + OCR.

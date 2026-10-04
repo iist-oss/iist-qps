@@ -40,6 +40,11 @@ the latest CI result, if any, and fixing failures first.
   [tsc + vite build green in CI]  (pure-logic modules typechecked + 6 node tests pass locally; React/Supabase code UNTESTED)
 - [~] CI `frontend-ci.yml` (npm test + build); no package-lock.json yet (sandbox has no network)
 
+### B3b Email OTP login (D21)
+- [~] Migration 0006 `email_domain_ok` + pgTAP `email_check.test.sql` (3)
+- [~] `/login` page (email -> 6-digit code, resend cooldown), AuthContext `sendCode`/`verifyCode`, `lib/email.ts` + tests  [CI green, then real delivery test: USER_ACTIONS 11-13]
+- [ ] Optional: Cloudflare Turnstile captcha to stop scripted code-request floods
+
 ### B4 Upload + OCR
 - [ ] Drag/drop, per-file status (never abort batch), 10 MiB + PDF checks client-side
 - [ ] OCR autofill (pdf.js + tesseract.js) using config regex; filename parsing first; map Autumn/Spring/Monsoon words to odd/even (D12)

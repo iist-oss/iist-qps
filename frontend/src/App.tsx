@@ -5,6 +5,7 @@ import Header from "./components/Header";
 import SearchPage from "./pages/SearchPage";
 import UploadPage from "./pages/UploadPage";
 import AdminPage from "./pages/AdminPage";
+import LoginPage from "./pages/LoginPage";
 import { isConfigured } from "./lib/supabase";
 import { university } from "./config/university";
 
@@ -21,6 +22,7 @@ export default function App() {
         <main>
           <Routes>
             <Route path="/" element={<SearchPage />} />
+            <Route path="/login" element={<LoginPage />} />
             <Route path="/upload" element={<UploadPage />} />
             <Route path="/admin/*" element={<AdminPage />} />
             <Route path="*" element={<SearchPage />} />

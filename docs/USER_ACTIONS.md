@@ -19,12 +19,13 @@ After this, just say "continue" – the AI reads CLAUDE.md and picks up from AI_
 10. (Optional, for Slack) Dashboard -> Database -> Webhooks -> create: table `papers`, event INSERT,
     type "Supabase Edge Functions" -> `notify-upload`, add header `x-webhook-secret` = same value as step 8.
 
-## Added in session 6 (Frontend) – Google login setup
-11. Google Cloud Console -> APIs & Services -> Credentials -> Create OAuth client ID (Web).
-    Authorised redirect URI = `https://<project-ref>.supabase.co/auth/v1/callback`.
-12. Supabase -> Authentication -> Providers -> Google: paste Client ID + Secret, enable.
-13. Supabase -> Authentication -> URL Configuration:
-    Site URL = `https://<you>.github.io/<repo>/`  and add the same + `http://localhost:5173/` to Redirect URLs.
+## Login setup (session 12, replaces the Google steps 11-13; see DECISIONS D21)
+11. Run `supabase/migrations/0006_email_check.sql` in the Supabase SQL editor.
+12. Supabase -> Authentication -> Providers: enable **Email**, disable Google. OTP length 6, expiry about 10 min.
+13. Supabase -> Authentication -> SMTP: add a custom SMTP sender (IIST IT relay if possible, else Brevo free tier, else a Gmail app password).
+    Then edit the **"Magic Link"** and **"Confirm signup"** email templates to show the code: `Your code: {{ .Token }}`.
+    (Authentication -> URL Configuration: set Site URL to `https://iist-oss.github.io/iist-qps/`.)
+    Test: request a code for one @iist.ac.in and one @ug.iist.ac.in address; check spam; ask IT to whitelist the sender if needed.
 14. (DONE via migration 0005 + settings, see DECISIONS D20) restrict to your university: `update public.app_settings set value='university.edu' where key='allowed_email_domain';`
     and set `allowedEmailDomain` in `frontend/src/config/university.ts` (adds the Google account-chooser hint).
 15. (SKIP – user tests on production, no local dev) Local dev: `cd frontend && cp .env.example .env.local`, fill in the URL + anon key, `npm install && npm run dev`.

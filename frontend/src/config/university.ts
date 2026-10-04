@@ -2,8 +2,8 @@
 export const university = {
   name: "Campus QPS",
   tagline: "Search for previous year question papers.",
-  /** UI hint only (Google account chooser shows Workspace accounts only). Real enforcement is in the DB:
-   *  app_settings.allowed_email_domain (comma-separated) + the sign-up trigger from migration 0005. Keep in sync. */
+  /** Shown on the login page. Real enforcement is in the DB:
+   *  app_settings.allowed_email_domain (comma-separated) + the sign-up trigger from migration 0005 + email_domain_ok (0006). Keep in sync. */
   allowedEmailDomains: ["iist.ac.in", "ug.iist.ac.in"] as string[],
 
   /** Used by upload autofill in B4. Keep in sync with supabase/functions/_shared/validate.ts */
