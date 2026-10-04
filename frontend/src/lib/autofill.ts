@@ -140,6 +140,13 @@ export function findNote(text: string): string {
     const w = sup[1].toLowerCase();
     parts.push(w.startsWith("make") ? "Make-up" : w.startsWith("re") ? "Re-exam" : "Supplementary");
   }
+  // "Exercise-1", "Exercise IV", "Experiment 3", "Assignment 2": numbered material (labs/assignments) is not a duplicate of its siblings.
+  const num = /\b(exercise|experiment|assignment)\b[\s_\u2013\u2014:#.-]*(\d{1,2}|[ivx]{1,4})(?![A-Za-z0-9])/i.exec(text);
+  if (num) {
+    const t = num[2];
+    const n = /^\d+$/.test(t) ? Number(t) : ROMAN[t.toUpperCase()];
+    if (n) parts.push(`${num[1][0].toUpperCase()}${num[1].slice(1).toLowerCase()} ${n}`);
+  }
   return parts.join(", ").slice(0, 200);
 }
 

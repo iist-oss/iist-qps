@@ -193,3 +193,9 @@
 - **Did:** OCR'd the 42 pages (tesseract) to find boundaries, checked ambiguous pages by eye, split with qpdf into 21 papers (MA111C x4, PH112C x4, CH112H x2, AA131V lab exercises x4, AV111C x4, ES111H x3). Blacked out the printed name + ID on the Physics class test page (image edited, original not included in that file; OCR of the output finds no name). Files are all < 3 MB so no recompression was needed. Filenames carry code, exam, year and `odd-semester`; checked with the app's own autofill + catalogue (all 21 resolve code, name, year, exam, semester; the unlabelled quiz has no exam). Autofill fix: a bare `_ct_` in a FILE NAME now means class test (not in paper text). 50 node tests pass.
 - **Judgement calls to confirm:** "Test I - November 2024" filed as ct2; Physics class test filed as PH112C (no code printed); page 30 (transformer questions, no header) filed as an unlabelled AV111C paper; lab code AA131V (catalogue) although papers print AE131/AV131.
 - **Delivered:** iist-sem1-2024-papers.zip (batch1/2/3 + README.txt).
+
+### Session 24 – 2026-10-05 – First production test (batch 1)
+- **User result:** all 6 steps done (push, CI, SQL, admin, one test, batch 1 uploaded). Admin page works; 4 lab papers (#3-#6) waiting and flagged each other as duplicates.
+- **Did:** D30 (note autofill for "Exercise N", duplicate rule ignores differently-noted papers). 52 node tests pass; tsc --strict on lib files. UNTESTED: ReviewCard change (CI builds).
+- **Existing rows #3-#6 have blank notes:** the admin types "Exercise N" in each card and uses "Save only", then Approves (check the PDF preview to see which exercise it is).
+- **Open:** the 6 other batch-1 papers' status not stated by the user (assumed approved); batch 2/3 not yet uploaded; takedown page, branding (Q1).

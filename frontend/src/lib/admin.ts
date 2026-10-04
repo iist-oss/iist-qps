@@ -57,12 +57,15 @@ export function formToFields(f: FormDetails) {
   };
 }
 
+/** Both notes filled in and different ("Exercise 1" vs "Exercise 2", "Slot A" vs "Slot B"): two different papers. */
+const notesDiffer = (a: string, b: string) => a.trim() !== "" && b.trim() !== "" && a.trim().toLowerCase() !== b.trim().toLowerCase();
+
 /**
  * Papers that are probably the same paper as `target`: same course code, year and exam; semester equal or either unknown.
  * `others` should already exclude trash; `target` itself is skipped.
  */
 export function findSimilar(
-  target: Pick<AdminPaper, "id" | "course_code" | "year" | "exam" | "semester">,
+  target: Pick<AdminPaper, "id" | "course_code" | "year" | "exam" | "semester"> & { note?: string },
   others: AdminPaper[],
 ): AdminPaper[] {
   const code = normCode(target.course_code);
@@ -70,7 +73,8 @@ export function findSimilar(
   return others.filter((o) =>
     o.id !== target.id && !o.is_deleted &&
     normCode(o.course_code) === code && o.year === target.year && o.exam === target.exam &&
-    (o.semester === "" || target.semester === "" || o.semester === target.semester));
+    (o.semester === "" || target.semester === "" || o.semester === target.semester) &&
+    !notesDiffer(o.note, target.note ?? ""));
 }
 
 /** "2 days ago"-style label for the review list. */

@@ -85,3 +85,6 @@ Supersedes the 100 MiB part of D26 (the Free plan caps the project-wide upload l
 
 ## D29 – Per-file limit is 47 MiB (2026-10-05, session 22, user decision)
 Supersedes D28. 47 MiB = 49,283,072 bytes stays under 50,000,000 in case Supabase counts "50 MB" in decimal. Migration 0009; `maxFileMiB` = 47.
+
+## D30 – Numbered material is not a duplicate (2026-10-05, session 24)
+First production test: the four lab exercises (same code/year/exam, blank note) listed each other as "possible duplicates", and ticking replace would have trashed the others. Now (a) autofill puts "Exercise N" / "Experiment N" / "Assignment N" (digits or roman) in the Note, from file names and paper text, and (b) `findSimilar` treats two papers whose notes are both filled and different as different papers (also "Slot A" vs "Slot B"). A blank note still matches, so a real re-upload is still flagged.

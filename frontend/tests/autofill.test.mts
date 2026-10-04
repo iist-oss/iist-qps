@@ -124,3 +124,12 @@ test("file names: bare _ct_ means class test; _odd-semester gives the semester",
   assert.deepEqual(d, { course_code: "PH112C", year: 2024, exam: "ct", semester: "odd", note: "" });
   assert.equal(findExam("CT scan of the brain"), ""); // paper text is not affected
 });
+
+test("numbered exercises get a note (file names and paper text)", () => {
+  assert.equal(findNote("AA131V lab 2024 odd-semester Exercise-3"), "Exercise 3");
+  assert.equal(findNote("AutoCAD Exercise — Iv"), "Exercise 4");
+  assert.equal(findNote("Slot B Exercise 2"), "Slot B, Exercise 2");
+  assert.equal(findNote("Mid semester examination"), "");
+  const d = detailsFromFilename("AA131V_lab_2024_odd-semester_Exercise-1.pdf", opts);
+  assert.equal(d.note, "Exercise 1");
+});

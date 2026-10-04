@@ -54,3 +54,14 @@ test("ageLabel", () => {
   assert.equal(ageLabel("2026-10-01T12:00:00Z", now), "4 days ago");
   assert.equal(ageLabel("garbage", now), "just now");
 });
+
+test("findSimilar: different notes (Exercise 1 vs 2) are different papers; blank note still matches", () => {
+  const lab = { ...base, exam: "lab", note: "Exercise 1" };
+  const others: AdminPaper[] = [
+    { ...lab, id: 2, note: "Exercise 2" },
+    { ...lab, id: 3, note: "exercise 1" },
+    { ...lab, id: 4, note: "" },
+  ];
+  assert.deepEqual(findSimilar({ ...lab, id: 1 }, others).map((o) => o.id), [3, 4]);
+  assert.deepEqual(findSimilar({ ...lab, id: 1, note: "" }, others).map((o) => o.id), [2, 3, 4]);
+});

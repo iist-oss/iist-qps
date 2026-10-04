@@ -34,10 +34,10 @@ export default function ReviewCard({ paper, mode, onDone, onDelete, onReplaced }
     let cancelled = false;
     const t = setTimeout(async () => {
       const rows = await listSameCourseYear(code, year);
-      if (!cancelled) setSimilar(findSimilar({ id: paper.id, course_code: code, year, exam: form.exam, semester: form.semester }, rows));
+      if (!cancelled) setSimilar(findSimilar({ id: paper.id, course_code: code, year, exam: form.exam, semester: form.semester, note: form.note }, rows));
     }, 400);
     return () => { cancelled = true; clearTimeout(t); };
-  }, [paper.id, code, year, form.exam, form.semester]);
+  }, [paper.id, code, year, form.exam, form.semester, form.note]);
   const replaceIds = useMemo(() => similar.filter((s) => replace.has(s.id)).map((s) => s.id), [similar, replace]);
 
   async function openPdf(path: string, inline: boolean) {
