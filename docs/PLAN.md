@@ -19,55 +19,55 @@ the latest CI result, if any, and fixing failures first.
 ## Build queue (each item = one session; acceptance criteria in brackets)
 
 ### B1 Database (mostly written)
-- [~] 0001 schema/RLS/search, 0002 storage, 0003 settings + domain restriction + upload cap  (session 9: applied by CI on the real Supabase local stack; production project not yet applied)
-- [~] seed.sql, pgTAP tests (20 assertions, pass locally via `tools/local-db-test/run.sh`), CI workflow `db-tests.yml`
-- [ ] Fix whatever CI reports  [CI green]
+- [x] 0001-0009 schema/RLS/search/storage/settings/limits  (CI green; applied to production, user-confirmed)
+- [x] seed.sql, pgTAP tests, CI workflow `db-tests.yml`
+- [x] Fix whatever CI reports  [CI green]
 
 ### B2 Edge Functions (Deno/TypeScript)
-- [~] `approve-paper`: admin-only; update row, move file unapproved->approved, set file_path; if move fails revert row
-- [~] `delete-paper`: admin-only; soft delete (flag) and hard delete (row + storage object)
-- [~] `notify-upload`: DB webhook -> email to all admins (Gmail SMTP) + optional Slack (no-op if secrets unset)
+- [x] `approve-paper` (used in production): admin-only; update row, move file unapproved->approved, set file_path; if move fails revert row
+- [x] `delete-paper` (used in production): admin-only; soft delete (flag) and hard delete (row + storage object)
+- [~] `notify-upload` (email on upload still to be confirmed by the user): DB webhook -> email to all admins (Gmail SMTP) + optional Slack (no-op if secrets unset)
 - [~] Shared helpers `_shared/` (auth, cors, validate, trash) – validate logic verified under Node; rest UNTESTED
 - [~] Migration 0004 `admin_apply_edit` (transactional edit) + pgTAP test `admin_edit.test.sql`
 - [~] CI `functions-check.yml` (deno check + deno test); API contract in docs/EDGE_FUNCTIONS.md
   [deno check passes in CI; manual test script in docs/TEST_CHECKLIST.md]
 
 ### B3 Frontend core (Vite+React+TS)
-- [~] Scaffold, relative `base` + HashRouter, SCSS, `src/config/university.ts` (name, colours, regexes, exam/semester lists, email domain hint)
-- [~] `src/api/` wrappers: searchPapers, getStats, publicFileUrl done; upload/admin wrappers come in B4/B5
-- [~] Search page: query, exam filter, year filter, sort, shareable URL, stats banner
-- [~] Auth: Google sign-in, session hook, sign-out, admin flag from `admins` table
+- [x] Scaffold, relative `base` + HashRouter, SCSS, `src/config/university.ts` (name, colours, regexes, exam/semester lists, email domain hint)
+- [x] `src/api/` wrappers: searchPapers, getStats, publicFileUrl done; upload/admin wrappers come in B4/B5
+- [x] Search page: query, exam filter, year filter, sort, shareable URL, stats banner
+- [x] Auth (now email-code login):, session hook, sign-out, admin flag from `admins` table
   [tsc + vite build green in CI]  (pure-logic modules typechecked + 6 node tests pass locally; React/Supabase code UNTESTED)
-- [~] CI `frontend-ci.yml` (npm test + build); no package-lock.json yet (sandbox has no network)
+- [x] CI `frontend-ci.yml` (npm test + build); no package-lock.json yet (sandbox has no network)
 
 ### B3b Email OTP login (D21)
-- [~] Migration 0006 `email_domain_ok` + pgTAP `email_check.test.sql` (3)
+- [x] Migration 0006 `email_domain_ok` + pgTAP `email_check.test.sql` (3)
 - [x] `/login` page (email -> 6-digit code, resend cooldown), AuthContext `sendCode`/`verifyCode`, `lib/email.ts` + tests  (user confirmed real OTP login works, 2026-10-04)
 - [ ] Optional: Cloudflare Turnstile captcha to stop scripted code-request floods
 
 ### B4 Upload + OCR
-- [~] Drag/drop + "Choose PDF files" button, per-file status (never abort batch), 47 MiB (0009) + PDF checks (extension/type, size, `%PDF-` header)  (session 14)
-- [~] Autofill: filename first, then first-page text (pdf.js) or OCR (tesseract.js) for scans; config regex; Autumn/Monsoon -> odd, Spring -> even (D12)  [pure logic tested: 23 node tests pass; browser OCR UNTESTED]
-- [~] Details edited inline on each file card (no modal, so the old hooks-in-`if` bug cannot occur) (D23)
-- [~] Upload = Storage upload to `unapproved/<uid>/<uuid>.pdf`, then insert row; storage object removed if the insert fails
-- [ ] Real-world test on production: upload a text PDF and a scanned PDF; check the admin email arrives (notify-upload)
+- [x] Drag/drop + "Choose PDF files" button, per-file status (never abort batch), 47 MiB (0009) + PDF checks (extension/type, size, `%PDF-` header)  (session 14)
+- [x] Autofill: filename first, then first-page text (pdf.js) or OCR (tesseract.js) for scans; config regex; Autumn/Monsoon -> odd, Spring -> even (D12)  [pure logic tested: 23 node tests pass; browser OCR UNTESTED]
+- [x] Details edited inline on each file card (no modal, so the old hooks-in-`if` bug cannot occur) (D23)
+- [x] Upload = Storage upload to `unapproved/<uid>/<uuid>.pdf`, then insert row; storage object removed if the insert fails
+- [~] Real-world test on production: text PDFs done (batches 1-3); still to try: a scanned PDF, and the admin email (see docs/TEST_CHECKLIST.md)
 
 ### B5 Admin (session 20)
-- [~] Review queue (oldest first) with PDF preview via signed URL (iframe + "open in new tab"), edit form, Approve / Save only, via `approve-paper`
-- [~] Similar-paper detection (same course code + year + exam, semester equal or unknown) with "replace" tick boxes
-- [~] Approved tab (edit, unapprove, delete = takedown), Trash tab (restore, permanent delete with confirm)
-- [~] Soft delete with 8 s undo (delete is sent after the delay), pending-count badge in the header, UI route guard
+- [x] Review queue (oldest first) with PDF preview via signed URL (iframe + "open in new tab"), edit form, Approve / Save only, via `approve-paper`
+- [x] Similar-paper detection (same course code + year + exam, semester equal or unknown) with "replace" tick boxes
+- [x] Approved tab (edit, unapprove, delete = takedown), Trash tab (restore, permanent delete with confirm)
+- [x] Soft delete with 8 s undo (delete is sent after the delay), pending-count badge in the header, UI route guard
   [pure logic `lib/admin.ts` tested: 6 node tests; React pages UNTESTED until CI builds and an admin uses them on production]
 
 ### B6 Deploy
-- [~] `deploy-pages.yml` (build + publish), `ci.yml` = existing frontend-ci/db-tests/functions-check
-- [~] `deploy-functions.yml` (needs secret SUPABASE_ACCESS_TOKEN; skips cleanly without it)
-- [~] `keepalive.yml` cron (prevents free-tier pause)
-- [ ] 404.html / base-path checks
+- [x] `deploy-pages.yml` (build + publish), `ci.yml` = existing frontend-ci/db-tests/functions-check
+- [x] `deploy-functions.yml` (needs secret SUPABASE_ACCESS_TOKEN; skips cleanly without it)
+- [x] `keepalive.yml` cron (prevents free-tier pause)
+- [~] 404.html added (session 31); base-path works (site is live under /iist-qps/)
 
 ### B7 Import tools (default: generic)
-- [ ] `tools/import/` Node script: manifest (JSON/CSV) + folder of PDFs -> SHA-256 dedupe -> upload -> insert as library papers; dry-run mode
-- [ ] Source-specific scraper only when Q2 is answered
+- [~] `tools/import/` Node script: manifest (JSON/CSV) + folder of PDFs -> SHA-256 dedupe -> upload -> insert as library papers; dry-run mode (session 31; dry run tested, live run UNTESTED)
+- [ ] Source-specific scraper only when Q2 is answered (not needed: no library site)
 
 ### B7b Course catalogue (session 29)
 - [~] Migration 0010 `courses` + approval trigger + pgTAP `courses.test.sql` (10); `api/courses.ts`, Admin > Courses tab, `lib/courseList.ts` (4 node tests), upload page merges DB list
@@ -77,7 +77,10 @@ the latest CI result, if any, and fixing failures first.
 - [~] 0011 settings private (session 30)
 
 ### B8 Polish
-- [ ] Mobile pass, a11y pass, [~] privacy/takedown page + About/credits (session 25), `docs/TEST_CHECKLIST.md`, maintainer README
+- [x] privacy/takedown page + About/credits (session 25-27)
+- [~] a11y pass (labels, focus ring, tap size; session 31, static only), mobile pass (layout wrap; needs the user's phone check)
+- [x] `docs/TEST_CHECKLIST.md`, maintainer guide `docs/MAINTAINERS.md`
+- [ ] Optional: Cloudflare Turnstile captcha (needs a Cloudflare account)
 
 ## Definition of done
 Student searches anonymously; signs in; uploads a PDF; admin approves; paper appears in

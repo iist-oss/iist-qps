@@ -31,8 +31,8 @@ function ResultCard({ paper }: { paper: Paper }) {
         </div>
       </div>
       <div className="result-btns">
-        <a className="icon-btn" href={url} target="_blank" rel="noopener noreferrer" title="Open PDF"><FaFilePdf /></a>
-        <button className="icon-btn" onClick={() => copyLink(url)} title="Copy link to PDF"><FaLink /></button>
+        <a className="icon-btn" href={url} target="_blank" rel="noopener noreferrer" title="Open PDF" aria-label={`Open PDF: ${paperTitle(paper)} ${paper.year}`}><FaFilePdf /></a>
+        <button className="icon-btn" onClick={() => copyLink(url)} title="Copy link to PDF" aria-label="Copy link to PDF"><FaLink /></button>
       </div>
     </div>
   );
@@ -49,16 +49,16 @@ export default function SearchResults({ results }: { results: Paper[] }) {
   return (
     <div className="results">
       <div className="filters">
-        <select value={year ?? "all"} onChange={(e) => setYear(e.target.value === "all" ? null : Number(e.target.value))}>
+        <select aria-label="Filter by year" value={year ?? "all"} onChange={(e) => setYear(e.target.value === "all" ? null : Number(e.target.value))}>
           <option value="all">All years</option>
           {years.map((y) => <option key={y} value={y}>{y}</option>)}
         </select>
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
+        <select aria-label="Sort by" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
           <option value="relevance">Sort by relevance</option>
           <option value="year">Sort by year</option>
           <option value="course_name">Sort by course name</option>
         </select>
-        <select value={order} onChange={(e) => setOrder(e.target.value as SortOrder)} disabled={sortBy === "relevance"}>
+        <select aria-label="Sort order" value={order} onChange={(e) => setOrder(e.target.value as SortOrder)} disabled={sortBy === "relevance"}>
           <option value="descending">Descending</option>
           <option value="ascending">Ascending</option>
         </select>

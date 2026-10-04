@@ -18,6 +18,8 @@ Deno.serve(async (req) => {
   let payload: any;
   try { payload = await req.json(); } catch { return fail("Invalid JSON body."); }
   if (payload?.type !== "INSERT" || payload?.table !== "papers") return ok("Ignored.");
+  // Bulk imports (tools/import) insert already-approved library papers: nothing to review, so no email.
+  if (payload.record?.approve_status === true || payload.record?.from_library === true) return ok("Ignored (not a pending upload).");
 
   const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     { auth: { persistSession: false } });
