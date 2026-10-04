@@ -161,3 +161,9 @@
 - **Verified here:** 40 node tests pass (28 + 12 new, using transcribed real headers); `tsc --strict` on all lib files + config/courses.ts; edge-function `validate.ts` assertions run under Node (Deno not available: `validate.test.ts` additions UNTESTED under deno).
 - **UNTESTED:** UploadPage.tsx wiring (no tsc/vite here; CI builds it). Real OCR quality on these tilted phone-camera scans is unknown (tests use transcribed text, not OCR output). Nothing deployed yet.
 - **Next step:** user pushes; decide Q7-Q9; then B5 admin (needs PDF preview before approve for the privacy case).
+
+### Session 18 – 2026-10-05 – CI build red: placeholder key rejected by the D24 guard
+- **CI result:** `npm run build` failed in vite.config.ts: "The key has an unexpected shape". Cause: frontend-ci.yml used `VITE_SUPABASE_ANON_KEY: ci-placeholder-key`, which the session 16 guard (correctly) rejects. Session 16 had only considered the placeholder URL.
+- **Did:** CI now uses a fake anon-shaped JWT (role anon, ref `example`, matching `https://example.supabase.co`). Guard left strict. Checked with `configProblems`: new key -> no problems, old key -> the reported error.
+- **UNTESTED:** the CI run itself. If the DEPLOY workflow (not CI) shows the same error, the real `VITE_SUPABASE_ANON_KEY` secret is malformed (quotes/spaces/truncated) and must be re-pasted.
+- **Next step:** push, confirm green; then the Q7-Q9 decisions / B5 admin.

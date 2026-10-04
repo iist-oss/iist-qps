@@ -15,4 +15,4 @@ jobs:
       - run: npm run build      # tsc --noEmit && vite build
         env:
           VITE_SUPABASE_URL: https://example.supabase.co
-          VITE_SUPABASE_ANON_KEY: ci-placeholder-key
+          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsInJlZiI6ImV4YW1wbGUifQ.ci-placeholder-signature   # fake anon-shaped JWT (ref matches the URL) so the D24 build guard passes
