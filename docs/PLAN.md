@@ -1,0 +1,68 @@
+# PLAN v2 – build-ready (executed by the AI)
+
+Legend: [ ] todo  [~] written but never executed  [x] done and verified
+No step below waits on the user: unanswered questions use the defaults in DECISIONS D6–D10,
+all of which live in ONE config file so they can be changed later in minutes.
+
+## Verification strategy (important)
+The authoring sandbox has NO network and NO Postgres, so it cannot run SQL, `npm install`,
+or a build. Therefore: code is written carefully, and *GitHub Actions is the test runner*
+(pgTAP for SQL, tsc + vite build for frontend). A step is only [x] after CI is green or the
+user confirms it ran. Until then it stays [~]. Each session starts by asking for / reading
+the latest CI result, if any, and fixing failures first.
+
+## Done
+- [x] S1 Analyse original IQPS
+- [x] S2 Repo skeleton, AI context/log system
+- [x] S3 Review of S2 SQL: fixed 2 bugs (empty prefix query crash; users could preset approved_by)
+
+## Build queue (each item = one session; acceptance criteria in brackets)
+
+### B1 Database (mostly written)
+- [~] 0001 schema/RLS/search, 0002 storage, 0003 settings + domain restriction + upload cap  (session 7: applied + re-applied on local Postgres 16 with stubs; not yet on real Supabase)
+- [~] seed.sql, pgTAP tests (20 assertions, pass locally via `tools/local-db-test/run.sh`), CI workflow `db-tests.yml`
+- [ ] Fix whatever CI reports  [CI green]
+
+### B2 Edge Functions (Deno/TypeScript)
+- [~] `approve-paper`: admin-only; update row, move file unapproved->approved, set file_path; if move fails revert row
+- [~] `delete-paper`: admin-only; soft delete (flag) and hard delete (row + storage object)
+- [~] `notify-upload`: DB webhook -> Slack/email (no-op if secret unset)
+- [~] Shared helpers `_shared/` (auth, cors, validate, trash) – validate logic verified under Node; rest UNTESTED
+- [~] Migration 0004 `admin_apply_edit` (transactional edit) + pgTAP test `admin_edit.test.sql`
+- [~] CI `functions-check.yml` (deno check + deno test); API contract in docs/EDGE_FUNCTIONS.md
+  [deno check passes in CI; manual test script in docs/TEST_CHECKLIST.md]
+
+### B3 Frontend core (Vite+React+TS)
+- [~] Scaffold, relative `base` + HashRouter, SCSS, `src/config/university.ts` (name, colours, regexes, exam/semester lists, email domain hint)
+- [~] `src/api/` wrappers: searchPapers, getStats, publicFileUrl done; upload/admin wrappers come in B4/B5
+- [~] Search page: query, exam filter, year filter, sort, shareable URL, stats banner
+- [~] Auth: Google sign-in, session hook, sign-out, admin flag from `admins` table
+  [tsc + vite build green in CI]  (pure-logic modules typechecked + 6 node tests pass locally; React/Supabase code UNTESTED)
+- [~] CI `frontend-ci.yml` (npm test + build); no package-lock.json yet (sandbox has no network)
+
+### B4 Upload + OCR
+- [ ] Drag/drop, per-file status (never abort batch), 10 MiB + PDF checks client-side
+- [ ] OCR autofill (pdf.js + tesseract.js) using config regex; filename parsing first; map Autumn/Spring/Monsoon words to odd/even (D12)
+- [ ] Edit-details modal (fix the hooks-in-`if` bug from original)
+- [ ] Upload = Storage upload to `unapproved/<uid>/<uuid>.pdf`, then insert row; rollback storage object if insert fails
+
+### B5 Admin
+- [ ] Review queue, edit+approve modal, similar-paper detection (query by course/year/sem/exam), replace option
+- [ ] Soft delete with 8 s undo, trash page with hard delete
+- [ ] Route guard (UI only; real security is RLS)
+
+### B6 Deploy
+- [ ] `deploy-pages.yml` (build + publish), `ci.yml` (typecheck, lint, build)
+- [ ] `keepalive.yml` cron (prevents free-tier pause)
+- [ ] 404.html / base-path checks
+
+### B7 Import tools (default: generic)
+- [ ] `tools/import/` Node script: manifest (JSON/CSV) + folder of PDFs -> SHA-256 dedupe -> upload -> insert as library papers; dry-run mode
+- [ ] Source-specific scraper only when Q2 is answered
+
+### B8 Polish
+- [ ] Mobile pass, a11y pass, privacy/takedown page, `docs/TEST_CHECKLIST.md`, maintainer README
+
+## Definition of done
+Student searches anonymously; signs in; uploads a PDF; admin approves; paper appears in
+search; everything deploys from `main`; CI green.

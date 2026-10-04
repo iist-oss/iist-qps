@@ -1,0 +1,14 @@
+name: Database tests
+on:
+  push: { paths: ['supabase/**', '.github/workflows/db-tests.yml'] }
+  pull_request: { paths: ['supabase/**'] }
+jobs:
+  pgtap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with: { version: latest }
+      - run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit
+      - run: supabase db reset
+      - run: supabase test db

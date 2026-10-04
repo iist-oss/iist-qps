@@ -1,0 +1,58 @@
+$bg: #0d0d0d;
+$panel: #1a1a1a;
+$border: #2e2e2e;
+$text: #ececec;
+$muted: #9a9a9a;
+$accent: #4f8cff;
+
+* { box-sizing: border-box; }
+body { margin: 0; background: $bg; color: $text; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.5; }
+a { color: $accent; }
+main { min-height: 70vh; }
+
+.site-header .brand { display: inline-flex; align-items: center; gap: 0.5rem; }
+.site-header {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+  padding: 0.75rem 1.25rem; border-bottom: 1px solid $border;
+  .brand { font-weight: 700; font-size: 1.1rem; color: $text; text-decoration: none; }
+  nav { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  nav a { color: $muted; text-decoration: none; &.active { color: $text; } }
+}
+.link-btn { background: none; border: none; color: $accent; cursor: pointer; font: inherit; display: inline-flex; gap: 0.35rem; align-items: center; padding: 0; }
+.banner { background: #5a3b00; color: #ffd48a; padding: 0.6rem 1.25rem; text-align: center; }
+
+.page { max-width: 760px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+h1 { margin: 0.5rem 0 0; }
+.subtitle { color: $muted; margin-top: 0.25rem; }
+.stats { color: $muted; b { color: $accent; } }
+.message { color: $muted; text-align: center; margin: 2rem 0; }
+
+.search-form {
+  display: flex; flex-direction: column; gap: 0.75rem; margin: 1.25rem 0;
+  input:not([type="checkbox"]) { padding: 0.7rem 0.8rem; border-radius: 8px; border: 1px solid $border; background: $panel; color: $text; font-size: 1rem; }
+  .checks { display: flex; gap: 1rem; flex-wrap: wrap; label { display: inline-flex; gap: 0.35rem; align-items: center; } }
+  .row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+}
+button:not(.link-btn):not(.icon-btn) {
+  display: inline-flex; gap: 0.4rem; align-items: center; justify-content: center;
+  padding: 0.6rem 1rem; border-radius: 8px; border: 1px solid $border; background: $panel; color: $text; cursor: pointer; font-size: 0.95rem;
+  &:hover:not(:disabled) { border-color: $accent; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.filters { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;
+  select { padding: 0.45rem; border-radius: 6px; border: 1px solid $border; background: $panel; color: $text; } }
+.result-card {
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  padding: 0.85rem 1rem; margin-bottom: 0.6rem; background: $panel; border: 1px solid $border; border-radius: 10px;
+  .result-title { margin: 0 0 0.35rem; font-weight: 600; }
+  .tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .tag { font-size: 0.78rem; padding: 0.1rem 0.5rem; border-radius: 999px; border: 1px solid $border; color: $muted; }
+  .result-btns { display: flex; gap: 0.5rem; }
+}
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center; width: 2.4rem; height: 2.4rem;
+  border-radius: 8px; border: 1px solid $border; background: transparent; color: $text; cursor: pointer; text-decoration: none; font-size: 1.1rem;
+  &:hover { border-color: $accent; color: $accent; }
+}
+.site-footer { text-align: center; color: $muted; font-size: 0.85rem; padding: 1.5rem 1rem; border-top: 1px solid $border; }

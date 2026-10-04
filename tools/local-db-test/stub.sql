@@ -1,0 +1,24 @@
+create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
+grant anon, authenticated, service_role to postgres;
+create schema auth; create schema storage; create schema extensions;
+create table auth.users (id uuid primary key, email text, aud text, role text);
+create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims', true),''),'{}')::jsonb $$;
+create function auth.uid() returns uuid language sql stable as $$ select nullif(auth.jwt()->>'sub','')::uuid $$;
+create table storage.buckets (id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);
+create table storage.objects (id uuid default gen_random_uuid() primary key, bucket_id text, name text, owner uuid);
+alter table storage.objects enable row level security;
+create function storage.foldername(name text) returns text[] language sql as $$ select string_to_array(name,'/') $$;
+grant usage on schema public, auth, storage, extensions to anon, authenticated, service_role;
+alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
+grant select, insert, update, delete on storage.objects to authenticated, anon, service_role;
+-- minimal pgTAP shim
+create table _t(n int, ok bool, d text); create table _plan(p int);
+grant all on _t, _plan to public;
+create function plan(int) returns void language sql as $$ truncate _t; delete from _plan; insert into _plan values ($1) $$;
+create function _r(b bool, d text) returns text language plpgsql as $$ begin insert into _t values ((select count(*)+1 from _t), b, d); return (case when b then 'ok ' else 'NOT OK ' end)|| (select count(*) from _t) ||' - '||d; end $$;
+create function ok(bool, text) returns text language sql as $$ select _r($1,$2) $$;
+create function is(anyelement, anyelement, text) returns text language sql as $$ select _r($1 is not distinct from $2, $3 || case when $1 is not distinct from $2 then '' else format(' (got %s want %s)',$1,$2) end) $$;
+create function lives_ok(text, text) returns text language plpgsql as $$ begin execute $1; return _r(true,$2); exception when others then return _r(false,$2||' ['||sqlerrm||']'); end $$;
+create function throws_ok(text, text, text, text) returns text language plpgsql as $$ begin execute $1; return _r(false,$4||' [no error]'); exception when others then return _r(sqlstate=$2 and ($3 is null or sqlerrm=$3), $4||' ['||sqlstate||' '||sqlerrm||']'); end $$;
+create function finish() returns setof text language sql as $$ select format('# plan %s, ran %s, failed %s',(select p from _plan),count(*),count(*) filter (where not ok)) from _t $$;
