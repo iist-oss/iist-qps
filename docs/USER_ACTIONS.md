@@ -40,4 +40,11 @@ After this, just say "continue" – the AI reads CLAUDE.md and picks up from AI_
 20. Supabase Dashboard -> Storage -> Settings -> "Upload file size limit": make sure it is 50 MB (the Free plan maximum; our files are capped at 47 MiB).
 
 ## Session 29-30 – course catalogue + privacy fix
-21. Run the SQL in `supabase-run-0010-0011.txt` (migrations 0010 + 0011) in the Supabase SQL editor. Safe to run twice.
+21. Run the SQL in `supabase-run-0010-0012.txt` (migrations 0010 + 0011 + 0012) in the Supabase SQL editor. Safe to run twice. (Replaces the earlier 0010-0011 file; 0012 adds the course semester number.)
+
+## Session 32 – daily digest email (do after pushing; the site works without it)
+22. GitHub repo -> Settings -> Secrets -> Actions: add `WEBHOOK_SECRET` with the SAME value as the Supabase function secret `WEBHOOK_SECRET` (step 8/16).
+23. Make sure the Supabase function secrets `SMTP_USER`, `SMTP_PASS`, `SITE_URL` are set (same as the admin email, steps 16-17).
+24. After the push deployed the functions: GitHub -> Actions -> "Daily digest" -> Run workflow. It must be green (with nothing waiting it says "no email sent"; upload a test paper first to see a real email).
+25. Optional: Supabase -> Edge Functions -> Secrets: `NOTIFY_MODE` = `digest` to stop the per-upload email and use only the daily digest.
+26. Optional, solo-admin settings (SQL editor): `update public.app_settings set value = '5' where key = 'daily_upload_cap';` (per-person daily upload limit; `0` pauses all new uploads while search keeps working).

@@ -9,3 +9,7 @@ sql_paths = ["./seed.sql"]
 # Webhook-called function authenticates with a shared secret, not a user JWT
 [functions.notify-upload]
 verify_jwt = false
+
+# Scheduled (GitHub Actions cron) caller authenticates with the same shared secret
+[functions.daily-digest]
+verify_jwt = false

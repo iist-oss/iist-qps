@@ -3,14 +3,14 @@ import { filePathFor, friendlyUploadError, objectPathFor, type UploadDetails } f
 
 const BUCKET = "unapproved";
 
-export type UploadResult = { ok: true } | { ok: false; error: string };
+export type UploadResult = { ok: true; id: number | null } | { ok: false; error: string };
 
 /**
  * 1) put the PDF in unapproved/<uid>/<uuid>.pdf   2) insert the papers row.
  * If step 2 fails the file is removed again (allowed by policy unapproved_owner_cleanup),
  * so a failure never leaves an orphan behind. One file per call: callers never abort a batch.
  */
-export async function uploadPaper(file: File, uid: string, d: UploadDetails): Promise<UploadResult> {
+export async function uploadPaper(file: File, uid: string, d: UploadDetails, wantId = false): Promise<UploadResult> {
   const uuid = crypto.randomUUID();
   const objectPath = objectPathFor(uid, uuid);
 
@@ -22,7 +22,8 @@ export async function uploadPaper(file: File, uid: string, d: UploadDetails): Pr
     return { ok: false, error: friendlyUploadError(up.error.message) };
   }
 
-  const ins = await supabase.from("papers").insert({
+  // Only ask for the new id when the caller needs it (admin auto-approve): a plain insert is the proven path.
+  const row = {
     course_code: d.course_code,
     course_name: d.course_name,
     year: d.year,
@@ -31,12 +32,22 @@ export async function uploadPaper(file: File, uid: string, d: UploadDetails): Pr
     note: d.note,
     file_path: filePathFor(uid, uuid),
     uploaded_by: uid,
-  });
+  };
+  let newId: number | null = null;
+  let insError: { message: string } | null = null;
+  if (wantId) {
+    const ins = await supabase.from("papers").insert(row).select("id").single();
+    insError = ins.error;
+    if (!ins.error) newId = (ins.data as unknown as { id: number } | null)?.id ?? null;
+  } else {
+    insError = (await supabase.from("papers").insert(row)).error;
+  }
+  const ins = { error: insError };
   if (ins.error) {
     console.error("papers insert", ins.error.message);
     const rm = await supabase.storage.from(BUCKET).remove([objectPath]);
     if (rm.error) console.error("rollback failed", rm.error.message);
     return { ok: false, error: friendlyUploadError(ins.error.message) };
   }
-  return { ok: true };
+  return { ok: true, id: newId };
 }

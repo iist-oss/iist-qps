@@ -3,8 +3,9 @@ import toast from "react-hot-toast";
 import { useAuth } from "../auth/AuthContext";
 import { university } from "../config/university";
 import { uploadPaper } from "../api/upload";
-import { useCatalogue } from "../lib/useCatalogue";
-import { withCourseName } from "../lib/courses";
+import { autoApprove, notifyChanged } from "../api/admin";
+import { useCatalogue, useCourseSems } from "../lib/useCatalogue";
+import { withCourseName, withCourseSemester } from "../lib/courses";
 import { readFirstPageText } from "../lib/ocr";
 import { detailsFromFilename, extractDetails, mergeDetected } from "../lib/autofill";
 import {
@@ -20,6 +21,8 @@ interface Item {
   status: Status;
   error: string | null;
   form: FormDetails;
+  /** Shown when status is "done" (published at once, or waiting for review). */
+  doneMsg?: string;
 }
 
 const autofillOpts = {
@@ -28,7 +31,9 @@ const autofillOpts = {
 };
 
 export default function UploadPage() {
-  const { user, loading, signIn } = useAuth();
+  const { user, loading, signIn, isAdmin } = useAuth();
+  // B1: an admin's own uploads go live at once when complete (on by default).
+  const [publishNow, setPublishNow] = useState(true);
   const [items, setItems] = useState<Item[]>([]);
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -39,6 +44,13 @@ export default function UploadPage() {
   const catalogue = useCatalogue();
   const catalogueRef = useRef(catalogue);
   catalogueRef.current = catalogue;
+  const sems = useCourseSems();
+  const semsRef = useRef(sems);
+  semsRef.current = sems;
+  /** Course name from the catalogue, for a blank name only. */
+  const nameFromCatalogue = (f: FormDetails) => withCourseName(f, catalogueRef.current);
+  /** Name AND odd/even from the catalogue. Only used AFTER the paper's own text was read, so the paper wins. */
+  const fromCatalogue = (f: FormDetails) => withCourseSemester(withCourseName(f, catalogueRef.current), semsRef.current, catalogueRef.current);
   // OCR runs one file at a time so a phone is not overloaded.
   const ocrChain = useRef<Promise<void>>(Promise.resolve());
 
@@ -66,10 +78,11 @@ export default function UploadPage() {
       }
       const detected = extractDetails(text, autofillOpts);
       setItems((prev) => prev.map((it) =>
-        it.key === key ? { ...it, status: "ready", error: note, form: withCourseName(fillBlanks(it.form, detected), catalogueRef.current) } : it));
+        it.key === key ? { ...it, status: "ready", error: note, form: fromCatalogue(fillBlanks(it.form, detected)) } : it));
     } catch (e) {
       console.error("read file", e);
-      patch(key, { status: "ready", error: "Could not read this file. Please fill in the details." });
+      setItems((prev) => prev.map((it) =>
+        it.key === key ? { ...it, status: "ready", error: "Could not read this file. Please fill in the details.", form: fromCatalogue(it.form) } : it));
     }
   }
 
@@ -88,12 +101,12 @@ export default function UploadPage() {
       const problem = checkFileBasic(file, university.maxFileMiB);
       const key = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
       if (problem) {
-        added.push({ key, file, status: "rejected", error: problem, form: withCourseName(toForm(detailsFromFilename(file.name, autofillOpts)), catalogueRef.current) });
+        added.push({ key, file, status: "rejected", error: problem, form: nameFromCatalogue(toForm(detailsFromFilename(file.name, autofillOpts))) });
         continue;
       }
       if (room <= 0) { skippedLimit++; continue; }
       room--;
-      added.push({ key, file, status: "reading", error: null, form: withCourseName(toForm(detailsFromFilename(file.name, autofillOpts)), catalogueRef.current) });
+      added.push({ key, file, status: "reading", error: null, form: nameFromCatalogue(toForm(detailsFromFilename(file.name, autofillOpts))) });
     }
 
     if (skippedLimit > 0) toast.error(`You can add up to ${university.maxUploadFiles} files at a time. ${skippedLimit} not added.`);
@@ -126,6 +139,7 @@ export default function UploadPage() {
     setBusy(true);
     const nowYear = new Date().getFullYear();
     let okCount = 0;
+    let publishedCount = 0;
     let failCount = 0;
     // Snapshot of what is ready now; each file is handled on its own and a failure never stops the rest.
     for (const it of itemsRef.current.filter((i) => i.status === "ready")) {
@@ -136,12 +150,31 @@ export default function UploadPage() {
         continue;
       }
       patch(it.key, { status: "uploading", error: null });
-      const result = await uploadPaper(it.file, user.id, checked.value);
-      if (result.ok) { patch(it.key, { status: "done", error: null }); okCount++; }
+      const wantPublish = isAdmin && publishNow;
+      const result = await uploadPaper(it.file, user.id, checked.value, wantPublish);
+      if (result.ok) {
+        let doneMsg = "Submitted for review.";
+        if (wantPublish) {
+          if (result.id === null) doneMsg = "Uploaded; it is in the review queue.";
+          else {
+            const a = await autoApprove(result.id, it.form);
+            if (a.approved) { doneMsg = "Published (approved)."; publishedCount++; }
+            else doneMsg = `Uploaded; left in the review queue (${a.reason}).`;
+          }
+        }
+        patch(it.key, { status: "done", error: null, doneMsg });
+        okCount++;
+      }
       else { patch(it.key, { status: "ready", error: result.error }); failCount++; }
     }
     setBusy(false);
-    if (okCount > 0) toast.success(`${okCount} paper(s) submitted for review.`);
+    if (publishedCount > 0) notifyChanged();
+    if (okCount > 0) {
+      const queued = okCount - publishedCount;
+      toast.success(publishedCount > 0
+        ? `${publishedCount} published${queued > 0 ? `, ${queued} in the review queue` : ""}.`
+        : `${okCount} paper(s) submitted for review.`);
+    }
     if (failCount > 0) toast.error(`${failCount} file(s) need attention.`);
   }
 
@@ -166,6 +199,12 @@ export default function UploadPage() {
         PDF only, up to {university.maxFileMiB} MiB each, {university.maxUploadFiles} files at a time.
         An admin reviews every paper before it appears in search.
       </p>
+      {isAdmin && (
+        <label className="check-row">
+          <input type="checkbox" checked={publishNow} onChange={(e) => setPublishNow(e.target.checked)} />
+          <span>Publish my uploads at once (only when complete and not a duplicate)</span>
+        </label>
+      )}
 
       <div
         className={`dropzone${dragging ? " dragging" : ""}`}
@@ -218,7 +257,7 @@ function ItemCard(props: {
 
       {status === "reading" && <p className="muted">Reading the PDF to fill in details…</p>}
       {status === "uploading" && <p className="muted">Uploading…</p>}
-      {status === "done" && <p className="ok-text">Submitted for review.</p>}
+      {status === "done" && <p className="ok-text">{item.doneMsg ?? "Submitted for review."}</p>}
       {error && <p className="form-error" role="alert">{error}</p>}
 
       {editable && (

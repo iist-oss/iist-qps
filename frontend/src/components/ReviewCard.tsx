@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { useCatalogue } from "../lib/useCatalogue";
+import { useCatalogue, useCourseSems } from "../lib/useCatalogue";
 import { listSameCourseYear, savePaper, signedPdfUrl, notifyChanged } from "../api/admin";
 import { ageLabel, approveProblems, findSimilar, formToFields, normCode, paperToForm, type AdminPaper } from "../lib/admin";
-import { withCourseName } from "../lib/courses";
+import { withCourseName, withCourseSemester } from "../lib/courses";
 import { EXAM_OPTIONS, SEMESTER_OPTIONS, type FormDetails } from "../lib/upload";
 import type { SemesterValue } from "../lib/autofill";
 
@@ -14,13 +14,16 @@ interface Props {
   onDone: (id: number) => void;          // the card left this list (approved / unapproved / replaced)
   onDelete: (id: number) => void;        // parent shows the 8 s undo
   onReplaced: (ids: number[]) => void;   // duplicates that were moved to trash
+  /** Bulk approve (pending list only): a tick box on the card. `reasons` = why it cannot be ticked. */
+  bulk?: { ready: boolean; reasons: string[]; checked: boolean; onToggle: () => void };
 }
 
-export default function ReviewCard({ paper, mode, onDone, onDelete, onReplaced }: Props) {
+export default function ReviewCard({ paper, mode, onDone, onDelete, onReplaced, bulk }: Props) {
   const catalogue = useCatalogue();
-  const [form, setForm] = useState<FormDetails>(() => withCourseName(paperToForm(paper), catalogue));
-  // The live catalogue may arrive after the first render: fill a still-blank name then (never overwrites typing).
-  useEffect(() => { setForm((f) => withCourseName(f, catalogue)); }, [catalogue]);
+  const sems = useCourseSems();
+  const [form, setForm] = useState<FormDetails>(() => withCourseSemester(withCourseName(paperToForm(paper), catalogue), sems, catalogue));
+  // The live catalogue may arrive after the first render: fill a still-blank name / semester then (never overwrites typing).
+  useEffect(() => { setForm((f) => withCourseSemester(withCourseName(f, catalogue), sems, catalogue)); }, [catalogue, sems]);
   const [url, setUrl] = useState<string | null>(null);
   const [showPdf, setShowPdf] = useState(false);
   const [similar, setSimilar] = useState<AdminPaper[]>([]);
@@ -73,6 +76,16 @@ export default function ReviewCard({ paper, mode, onDone, onDelete, onReplaced }
         <b className="file-name">#{paper.id} · {paper.course_code || "no code"} · {paper.year}</b>
         <span className="muted">{ageLabel(paper.upload_timestamp)}{paper.from_library ? " · library" : ""}</span>
       </div>
+
+      {bulk && (
+        <div className="bulk-row">
+          <label className="check-row">
+            <input type="checkbox" checked={bulk.checked} disabled={!bulk.ready} onChange={bulk.onToggle} />
+            <span>{bulk.ready ? "I checked the PDF (no names / roll numbers): include in bulk approve" : "Not ready for bulk approve"}</span>
+          </label>
+          {!bulk.ready && bulk.reasons.length > 0 && <span className="muted">{bulk.reasons.join(" ")}</span>}
+        </div>
+      )}
 
       <div className="review-actions">
         <button type="button" onClick={() => (showPdf ? setShowPdf(false) : openPdf(paper.file_path, true))}>

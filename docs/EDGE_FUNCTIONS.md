@@ -23,6 +23,9 @@ Request: `{ ids: number[] (<=100), mode: "soft" | "restore" | "hard" }`
 ## notify-upload  (DB webhook, not called by the frontend)
 Triggered by INSERT on `papers`. Needs header `x-webhook-secret`. Emails every admin (Gmail SMTP, port 465; first upload of a 10-minute burst only) and posts to Slack if configured. Each channel is skipped if its secrets are unset.
 
+## daily-digest  (scheduled, not called by the frontend)
+Called once a day by `.github/workflows/digest.yml` (POST, header `x-webhook-secret` = WEBHOOK_SECRET). Counts papers waiting for review; if there are none it answers 200 "Nothing waiting" and sends nothing; otherwise it emails every admin ("N papers waiting for review", new in 24 h, age of the oldest, review link). Errors: 401 wrong secret, 500 SMTP not configured / no admin email / DB error, 502 SMTP send failed (the workflow turns red). `NOTIFY_MODE=digest` makes `notify-upload` do nothing.
+
 ## Required function secrets
 `WEBHOOK_SECRET` (any long random string), `SMTP_USER` + `SMTP_PASS` (Gmail address + app password, for admin emails), `SMTP_FROM`/`SMTP_HOST`/`SMTP_PORT` (optional), `SLACK_WEBHOOK_URL` (optional), `SITE_URL` (optional, for the review link).
 `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` are injected automatically.

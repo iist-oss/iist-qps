@@ -120,3 +120,9 @@ button.danger { border-color: #7a3030; color: #ff8a8a; &:hover:not(:disabled) { 
 // Accessibility: visible keyboard focus everywhere
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid $accent; outline-offset: 2px; }
 .noscript { padding: 1rem; text-align: center; }
+
+// Bulk approve (B2) and admin publish-now checkbox (B1)
+.check-row { display: flex; align-items: flex-start; gap: 0.5rem; margin: 0.5rem 0; cursor: pointer;
+  input { width: 1.4rem; height: 1.4rem; flex: none; margin-top: 0.1rem; } }
+.bulk-bar { display: flex; flex-direction: column; gap: 0.4rem; margin: 0.75rem 0; padding: 0.6rem 0.75rem; border: 1px solid $border; border-radius: 8px; position: sticky; top: 0; z-index: 2; background: $panel; }
+.bulk-row { display: flex; flex-direction: column; gap: 0.15rem; margin: 0.25rem 0 0.5rem; }

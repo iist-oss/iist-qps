@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ageLabel, approveProblems, findSimilar, formToFields, paperToForm, type AdminPaper } from "../src/lib/admin.ts";
+import { ageLabel, approveProblems, bulkProblems, findSimilar, formToFields, paperToForm, type AdminPaper } from "../src/lib/admin.ts";
 
 const base: AdminPaper = {
   id: 1, file_path: "unapproved/u/1.pdf", from_library: false, course_code: "MA111C", course_name: "Calculus",
@@ -64,4 +64,15 @@ test("findSimilar: different notes (Exercise 1 vs 2) are different papers; blank
   ];
   assert.deepEqual(findSimilar({ ...lab, id: 1 }, others).map((o) => o.id), [3, 4]);
   assert.deepEqual(findSimilar({ ...lab, id: 1, note: "" }, others).map((o) => o.id), [2, 3, 4]);
+});
+
+test("bulkProblems: complete and unique is ready; missing fields and look-alikes are not", () => {
+  const form = paperToForm(base);
+  assert.deepEqual(bulkProblems(base, form, [base], 2026), []); // itself is ignored
+  assert.deepEqual(bulkProblems(base, { ...form, semester: "" }, [], 2026), ["Choose the semester (odd or even)."]);
+  const dup = bulkProblems(base, form, [base, { ...base, id: 2 }, { ...base, id: 3 }], 2026);
+  assert.deepEqual(dup, ["Possible duplicate of #2, #3."]);
+  // different notes = different papers (lab exercises), so no duplicate flag
+  const lab = { ...base, exam: "lab", note: "Exercise 1" };
+  assert.deepEqual(bulkProblems(lab, paperToForm(lab), [{ ...lab, id: 2, note: "Exercise 2" }], 2026), []);
 });

@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Route, Routes } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../auth/AuthContext";
 import ReviewCard from "../components/ReviewCard";
 import CoursesAdmin from "./CoursesAdmin";
-import { deletePapers, listPapers, notifyChanged, signedPdfUrl, type AdminList } from "../api/admin";
-import { ageLabel, UNDO_MS, type AdminPaper } from "../lib/admin";
+import { deletePapers, listByCourseCodes, listPapers, notifyChanged, savePaper, signedPdfUrl, type AdminList } from "../api/admin";
+import { ageLabel, bulkProblems, formToFields, normCode, paperToForm, UNDO_MS, type AdminPaper } from "../lib/admin";
+import { useCatalogue, useCourseSems } from "../lib/useCatalogue";
+import { withCourseName, withCourseSemester } from "../lib/courses";
 
 // Admin dashboard (B5). UI guard only: RLS and the Edge Functions are the real protection.
 export default function AdminPage() {
@@ -50,6 +52,54 @@ function ReviewList({ list }: { list: "pending" | "approved" }) {
 
   const remove = (ids: number[]) => setRows((cur) => (cur ? cur.filter((r) => !ids.includes(r.id)) : cur));
 
+  // ---- Bulk approve (B2): pending list only. Uses each paper's SAVED details (+ catalogue name / semester). ----
+  const catalogue = useCatalogue();
+  const sems = useCourseSems();
+  const [ticked, setTicked] = useState<Set<number>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [sameCourse, setSameCourse] = useState<AdminPaper[] | null>(null);
+  const codesKey = list === "pending" && rows ? rows.map((r) => r.course_code).join("|") : "";
+  useEffect(() => {
+    if (list !== "pending" || !rows) return;
+    let cancelled = false;
+    const codes = rows.flatMap((r) => [r.course_code, normCode(r.course_code)]);
+    void listByCourseCodes(codes).then((all) => { if (!cancelled) setSameCourse(all); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [list, codesKey]);
+  const formFor = useCallback((p: AdminPaper) =>
+    withCourseSemester(withCourseName(paperToForm(p), catalogue), sems, catalogue), [catalogue, sems]);
+  const bulkInfo = useMemo(() => {
+    const m = new Map<number, { ready: boolean; reasons: string[] }>();
+    if (list !== "pending" || !rows || sameCourse === null) return m;
+    const nowYear = new Date().getFullYear();
+    for (const p of rows) {
+      const reasons = bulkProblems(p, formFor(p), sameCourse, nowYear);
+      m.set(p.id, { ready: reasons.length === 0, reasons });
+    }
+    return m;
+  }, [list, rows, sameCourse, formFor]);
+  const readyIds = rows ? rows.filter((r) => bulkInfo.get(r.id)?.ready).map((r) => r.id) : [];
+  const tickedReady = readyIds.filter((id) => ticked.has(id));
+
+  async function approveTicked() {
+    if (!rows || tickedReady.length === 0 || bulkBusy) return;
+    if (!window.confirm(`Approve ${tickedReady.length} paper(s)? Only do this if you looked at each PDF for names or roll numbers.`)) return;
+    setBulkBusy(true);
+    let okCount = 0;
+    const failed: string[] = [];
+    for (const id of tickedReady) {          // one by one; a failure never stops the rest
+      const p = rows.find((r) => r.id === id);
+      if (!p) continue;
+      const r = await savePaper(id, formToFields(formFor(p)), true, []);
+      if (r.ok) { okCount++; remove([id]); } else failed.push(`#${id}: ${r.error}`);
+    }
+    setBulkBusy(false);
+    setTicked(new Set(failed.length ? tickedReady.filter((id) => failed.some((f) => f.startsWith(`#${id}:`))) : []));
+    if (okCount > 0) { notifyChanged(); toast.success(`${okCount} approved.`); }
+    if (failed.length > 0) toast.error(`${failed.length} failed. ${failed[0]}`);
+  }
+
   function onDelete(id: number) {
     remove([id]);
     const undo = () => {
@@ -78,9 +128,27 @@ function ReviewList({ list }: { list: "pending" | "approved" }) {
   return (
     <>
       <p className="muted">{rows.length}{rows.length >= 100 ? "+" : ""} {list === "pending" ? "waiting, oldest first" : "most recent"}</p>
-      {rows.map((p) => (
-        <ReviewCard key={p.id} paper={p} mode={list} onDone={(id) => remove([id])} onDelete={onDelete} onReplaced={remove} />
-      ))}
+      {list === "pending" && (
+        <div className="bulk-bar">
+          <span>{sameCourse === null ? "Checking for duplicates…" : `${readyIds.length} ready (complete, no duplicate) · ${tickedReady.length} ticked`}</span>
+          <div className="review-actions">
+            <button type="button" disabled={bulkBusy || readyIds.length === 0} onClick={() => setTicked(new Set(readyIds))}>Tick all ready</button>
+            <button type="button" disabled={bulkBusy || ticked.size === 0} onClick={() => setTicked(new Set())}>Untick all</button>
+            <button type="button" disabled={bulkBusy || tickedReady.length === 0} onClick={() => void approveTicked()}>
+              {bulkBusy ? "Approving…" : `Approve ${tickedReady.length} ticked`}
+            </button>
+          </div>
+          <span className="muted">Bulk approve uses the saved details. If you changed a card, press “Save only” on it first.</span>
+        </div>
+      )}
+      {rows.map((p) => {
+        const info = bulkInfo.get(p.id);
+        const bulk = list === "pending" && info
+          ? { ready: info.ready, reasons: info.reasons, checked: ticked.has(p.id) && info.ready,
+              onToggle: () => setTicked((cur) => { const n = new Set(cur); if (n.has(p.id)) n.delete(p.id); else n.add(p.id); return n; }) }
+          : undefined;
+        return <ReviewCard key={p.id} paper={p} mode={list} bulk={bulk} onDone={(id) => remove([id])} onDelete={onDelete} onReplaced={remove} />;
+      })}
     </>
   );
 }

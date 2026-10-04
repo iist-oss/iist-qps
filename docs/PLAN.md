@@ -73,8 +73,9 @@ the latest CI result, if any, and fixing failures first.
 - [~] Migration 0010 `courses` + approval trigger + pgTAP `courses.test.sql` (10); `api/courses.ts`, Admin > Courses tab, `lib/courseList.ts` (4 node tests), upload page merges DB list
 
 ### B7c Automation (see docs/AUTOMATION_PLAN.md)
-- [ ] Phase A one-push release, B admin time savers, C maintenance, D import tool
+- [ ] Phase A one-push release, C maintenance (C0, C2-C5), D import tool
 - [~] 0011 settings private (session 30)
+- [~] Phase B (session 32, solo admin, D33/D34): B1 admin publish-now, B2 bulk approve, B3 course semester number (migration 0012 + `Semester N` headings), C1 daily digest (`daily-digest` function + `digest.yml`). 70 node tests pass; React / SQL / Deno code UNTESTED until CI and production
 
 ### B8 Polish
 - [x] privacy/takedown page + About/credits (session 25-27)

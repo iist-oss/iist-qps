@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabase";
-import type { AdminPaper } from "../lib/admin";
+import { approveProblems, findSimilar, formToFields, normCode, type AdminPaper } from "../lib/admin";
+import type { FormDetails } from "../lib/upload";
 
 export type AdminList = "pending" | "approved" | "trash";
 export type Result<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -28,6 +29,15 @@ export async function countPending(): Promise<number> {
 export async function listSameCourseYear(code: string, year: number): Promise<AdminPaper[]> {
   const { data, error } = await supabase.from("papers").select(COLS)
     .eq("course_code", code).eq("year", year).eq("is_deleted", false).limit(50);
+  return error ? [] : ((data ?? []) as AdminPaper[]);
+}
+
+/** Every non-trashed paper that has one of these course codes (bulk approve uses it to spot look-alikes in one query). */
+export async function listByCourseCodes(codes: string[]): Promise<AdminPaper[]> {
+  const uniq = [...new Set(codes.filter((c) => c !== ""))];
+  if (uniq.length === 0) return [];
+  const { data, error } = await supabase.from("papers").select(COLS)
+    .in("course_code", uniq).eq("is_deleted", false).limit(2000);
   return error ? [] : ((data ?? []) as AdminPaper[]);
 }
 
@@ -72,3 +82,21 @@ export const deletePapers = (ids: number[], mode: "soft" | "restore" | "hard") =
 
 /** Tells the header badge (and anything else) that counts changed. */
 export const notifyChanged = () => window.dispatchEvent(new Event("qps:papers-changed"));
+
+export type AutoApprove = { approved: true } | { approved: false; reason: string };
+
+/**
+ * B1: an admin's own upload goes live at once when the details are complete and nothing looks like a duplicate.
+ * Otherwise it stays in the review queue and `reason` says why. Never throws.
+ */
+export async function autoApprove(id: number, form: FormDetails): Promise<AutoApprove> {
+  const problems = approveProblems(form, new Date().getFullYear());
+  if (problems.length > 0) return { approved: false, reason: problems[0] };
+  const code = normCode(form.course_code);
+  const year = Number(form.year);
+  const similar = findSimilar({ id, course_code: code, year, exam: form.exam, semester: form.semester, note: form.note },
+    await listSameCourseYear(code, year));
+  if (similar.length > 0) return { approved: false, reason: `possible duplicate of #${similar[0].id}` };
+  const r = await savePaper(id, formToFields(form), true, []);
+  return r.ok ? { approved: true } : { approved: false, reason: r.error };
+}

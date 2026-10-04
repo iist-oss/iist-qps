@@ -19,4 +19,4 @@ jobs:
         uses: supabase/setup-cli@v1
         with: { version: latest }
       - if: ${{ env.SUPABASE_ACCESS_TOKEN != '' }}
-        run: supabase functions deploy approve-paper delete-paper notify-upload --project-ref "$PROJECT_REF" --use-api
+        run: supabase functions deploy approve-paper delete-paper notify-upload daily-digest --project-ref "$PROJECT_REF" --use-api

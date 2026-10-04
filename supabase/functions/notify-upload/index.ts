@@ -4,6 +4,7 @@
 // SMTP_PASS (a Gmail app password); SMTP_HOST (default smtp.gmail.com), SMTP_PORT (default 465),
 // SMTP_FROM (default SMTP_USER) are optional. Without SMTP_USER/SMTP_PASS the email part is skipped.
 // Batch uploads: only the FIRST paper of a 10-minute burst sends an email (no spam, stays under Gmail limits).
+// Set the secret NOTIFY_MODE=digest to switch this per-upload email (and Slack) off and rely on the daily-digest function.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 import { fail, ok } from "../_shared/cors.ts";
@@ -13,6 +14,8 @@ const BURST_MINUTES = 10;
 Deno.serve(async (req) => {
   const secret = Deno.env.get("WEBHOOK_SECRET");
   if (!secret || req.headers.get("x-webhook-secret") !== secret) return fail("Unauthorized.", 401);
+
+  if (Deno.env.get("NOTIFY_MODE") === "digest") return ok("Ignored (digest mode: the daily digest is used instead).");
 
   // deno-lint-ignore no-explicit-any
   let payload: any;

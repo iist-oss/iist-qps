@@ -25,7 +25,8 @@ export default function CoursesAdmin() {
     setBusy(false);
     if (!r.ok) { toast.error(r.error); return; }
     resetCatalogue();
-    toast.success(`${r.data} course(s) saved.`);
+    toast.success(`${r.data.count} course(s) saved.`);
+    if (r.data.semSkipped) toast("Semester numbers were not saved: run the latest SQL file (migration 0012) first.", { duration: 8000 });
     setText("");
     void reload();
   }
@@ -44,14 +45,15 @@ export default function CoursesAdmin() {
     <>
       <p className="muted">
         Courses are added automatically when you approve a paper. To add many at once, paste the course list here, one
-        course per line (for example <code>MA121C Linear Algebra</code>). Credits like 3-1-0-4 are ignored.
+        course per line (for example <code>MA121C Linear Algebra</code>). Credits like 3-1-0-4 are ignored. A line like
+        <code>Semester 2</code> sets the semester for the courses below it, so uploads of those courses get odd/even filled in.
       </p>
       <textarea className="course-paste" rows={6} value={text} onChange={(e) => setText(e.target.value)}
         placeholder={"MA121C Linear Algebra\nPH121C Waves and Optics"} aria-label="Course list" />
       {text.trim() !== "" && (
         <div className="similar-box">
           <p>{parsed.rows.length} course(s) found{parsed.skipped.length > 0 ? `, ${parsed.skipped.length} line(s) skipped` : ""}. Existing codes get the new name.</p>
-          {parsed.rows.slice(0, 50).map((r) => <div key={r.code}><b>{r.code}</b> {r.name}</div>)}
+          {parsed.rows.slice(0, 50).map((r) => <div key={r.code}><b>{r.code}</b> {r.name}{r.sem !== undefined ? <span className="muted"> · semester {r.sem}</span> : null}</div>)}
           {parsed.rows.length > 50 && <p className="muted">…and {parsed.rows.length - 50} more</p>}
           {parsed.skipped.length > 0 && <p className="muted">Skipped: {parsed.skipped.slice(0, 5).join(" | ")}{parsed.skipped.length > 5 ? " …" : ""}</p>}
           <div className="review-actions">
@@ -67,7 +69,7 @@ export default function CoursesAdmin() {
       {shown.map((c) => (
         <div key={c.code} className="upload-card course-row">
           <span><b>{c.code}</b> {c.name}</span>
-          <span className="muted">{c.source}</span>
+          <span className="muted">{c.sem !== undefined ? `sem ${c.sem} · ` : ""}{c.source}</span>
           <button type="button" className="danger" onClick={() => remove(c.code)}>Remove</button>
         </div>
       ))}

@@ -1,0 +1,22 @@
+name: Daily digest (email the admin when papers are waiting)
+on:
+  schedule: [{ cron: '30 14 * * *' }]   # 14:30 UTC = 20:00 IST, every day
+  workflow_dispatch:
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    env:
+      URL: ${{ secrets.VITE_SUPABASE_URL }}
+      KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      SECRET: ${{ secrets.WEBHOOK_SECRET }}
+    steps:
+      - name: Skip notice
+        if: ${{ env.URL == '' || env.SECRET == '' }}
+        run: echo "Secrets VITE_SUPABASE_URL / WEBHOOK_SECRET are not set - skipping the digest (not a failure)."
+      - name: Ask the function to send the digest
+        if: ${{ env.URL != '' && env.SECRET != '' }}
+        run: |
+          code=$(curl -sS -o out.txt -w '%{http_code}' -X POST "$URL/functions/v1/daily-digest" \
+            -H "apikey: $KEY" -H "x-webhook-secret: $SECRET" -H "Content-Type: application/json" -d '{}')
+          cat out.txt; echo
+          [ "$code" = "200" ]

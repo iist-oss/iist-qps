@@ -24,6 +24,7 @@ Open (planned below):
 - A5 GitHub issue templates: takedown request, bug, paper request (labels set automatically).
 
 ## Phase B: less clicking for the admin
+(Session 32 built B1, B2, B3 and C1 below, status [~]: see PLAN.md and D33/D34. B4 and B5 are still open.)
 - B1 Admin uploads skip the queue: if you upload as admin and the details are complete, approve right away (checkbox, on by default).
 - B2 Bulk approve: tick several cards that are complete and have no duplicate, one button.
 - B3 Course catalogue knows each course's semester: "Semester 2" headings in the pasted list set it; autofill then fills odd/even and the admin no longer picks it for every paper.

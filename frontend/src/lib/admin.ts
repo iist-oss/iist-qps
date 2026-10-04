@@ -77,6 +77,20 @@ export function findSimilar(
     !notesDiffer(o.note, target.note ?? ""));
 }
 
+/**
+ * Everything that stops a paper from being bulk-approved (B2): the normal approve checks plus "looks like a duplicate".
+ * `form` is the paper's saved details with the catalogue name/semester already filled in; `others` = papers with the
+ * same course code that are not in the trash (pending ones included, so two look-alikes block each other).
+ */
+export function bulkProblems(paper: Pick<AdminPaper, "id">, form: FormDetails, others: AdminPaper[], nowYear: number): string[] {
+  const out = approveProblems(form, nowYear);
+  const dupes = findSimilar(
+    { id: paper.id, course_code: form.course_code, year: Number(form.year), exam: form.exam, semester: form.semester, note: form.note },
+    others);
+  if (dupes.length > 0) out.push(`Possible duplicate of #${dupes.slice(0, 3).map((d) => d.id).join(", #")}.`);
+  return out;
+}
+
 /** "2 days ago"-style label for the review list. */
 export function ageLabel(iso: string, now: Date = new Date()): string {
   const ms = now.getTime() - new Date(iso).getTime();

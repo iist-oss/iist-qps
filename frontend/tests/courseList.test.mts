@@ -27,6 +27,29 @@ test("csv lines, quotes and lower-case codes", () => {
 
 test("lines without a code or name are reported, repeats collapse", () => {
   const r = parseCourseList("Semester 2\nMA121C\nMA121C Linear Algebra\nMA121C Linear Algebra and Geometry\n\nCode Title");
-  assert.deepEqual(r.rows, [{ code: "MA121C", name: "Linear Algebra and Geometry" }]);
-  assert.deepEqual(r.skipped, ["Semester 2", "MA121C", "Code Title"]);
+  assert.deepEqual(r.rows, [{ code: "MA121C", name: "Linear Algebra and Geometry", sem: 2 }]);
+  assert.deepEqual(r.rows.map((x) => x.sem), [2]); // the "Semester 2" heading is not skipped any more
+  assert.deepEqual(r.skipped, ["MA121C", "Code Title"]);
+});
+
+test("semester headings set the semester number of the lines below", () => {
+  const r = parseCourseList("Semester 2\nMA121C Linear Algebra\nPH121C Waves\n\nSem III\nCS201C Data Structures\n2nd Semester\nXX\n4th semester\nEE401C Control Systems");
+  assert.deepEqual(r.rows, [
+    { code: "CS201C", name: "Data Structures", sem: 3 },
+    { code: "EE401C", name: "Control Systems", sem: 4 },
+    { code: "MA121C", name: "Linear Algebra", sem: 2 },
+    { code: "PH121C", name: "Waves", sem: 2 },
+  ]);
+  assert.deepEqual(r.skipped, ["XX"]);
+});
+
+test("lines before any heading have no semester; bad headings are skipped, not applied", () => {
+  const r = parseCourseList("MA111C Calculus\nSemester 99\nPH112C Mechanics\nSemester project guidelines");
+  assert.deepEqual(r.rows, [{ code: "MA111C", name: "Calculus" }, { code: "PH112C", name: "Mechanics" }]);
+  assert.deepEqual(r.skipped, ["Semester 99", "Semester project guidelines"]);
+});
+
+test("a course line that mentions a semester is still a course", () => {
+  const r = parseCourseList("Semester 1\nMA111C Calculus for Semester 1 students");
+  assert.deepEqual(r.rows, [{ code: "MA111C", name: "Calculus for Semester 1 students", sem: 1 }]);
 });
