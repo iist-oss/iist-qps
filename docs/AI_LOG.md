@@ -188,3 +188,8 @@
 
 ### Session 22 – 2026-10-05 – 47 MiB limit
 - **Did:** user chose to lower the limit (D29). Migration 0009, `maxFileMiB` 47, tests/pgTAP/docs updated; SQL file now `docs/supabase-run-0007-0009.txt`.
+
+### Session 23 – 2026-10-05 – PYQP_2024_Sem_1.pdf split (Q8, Q9)
+- **Did:** OCR'd the 42 pages (tesseract) to find boundaries, checked ambiguous pages by eye, split with qpdf into 21 papers (MA111C x4, PH112C x4, CH112H x2, AA131V lab exercises x4, AV111C x4, ES111H x3). Blacked out the printed name + ID on the Physics class test page (image edited, original not included in that file; OCR of the output finds no name). Files are all < 3 MB so no recompression was needed. Filenames carry code, exam, year and `odd-semester`; checked with the app's own autofill + catalogue (all 21 resolve code, name, year, exam, semester; the unlabelled quiz has no exam). Autofill fix: a bare `_ct_` in a FILE NAME now means class test (not in paper text). 50 node tests pass.
+- **Judgement calls to confirm:** "Test I - November 2024" filed as ct2; Physics class test filed as PH112C (no code printed); page 30 (transformer questions, no header) filed as an unlabelled AV111C paper; lab code AA131V (catalogue) although papers print AE131/AV131.
+- **Delivered:** iist-sem1-2024-papers.zip (batch1/2/3 + README.txt).

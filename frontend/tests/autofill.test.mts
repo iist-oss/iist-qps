@@ -118,3 +118,9 @@ test("lab and assignment papers (non-exam material) are detected, but real exam 
   assert.equal(findExam("Mid Semester Examination, Laboratory Block"), "midsem");
   assert.equal(findExam("nothing relevant"), "");
 });
+
+test("file names: bare _ct_ means class test; _odd-semester gives the semester", () => {
+  const d = detailsFromFilename("PH112C_ct_2024_odd-semester.pdf", opts);
+  assert.deepEqual(d, { course_code: "PH112C", year: 2024, exam: "ct", semester: "odd", note: "" });
+  assert.equal(findExam("CT scan of the brain"), ""); // paper text is not affected
+});

@@ -157,7 +157,10 @@ export function extractDetails(text: string, opts: AutofillOptions): Detected {
 /** File names like `MA101_midsem_2023.pdf` -> details (underscores/dots count as spaces). */
 export function detailsFromFilename(name: string, opts: AutofillOptions): Detected {
   const cleaned = name.replace(/\.pdf$/i, "").replace(/[_.]+/g, " ");
-  return extractDetails(cleaned, opts);
+  const d = extractDetails(cleaned, opts);
+  // A bare "ct" word is only trusted in file names ("PH112C_ct_2024.pdf"); in paper text it could mean "CT scan".
+  if (d.exam === "" && /(^|[\s-])ct([\s-]|$)/i.test(cleaned)) d.exam = "ct";
+  return d;
 }
 
 /** Fill only what `primary` left blank. */
