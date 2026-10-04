@@ -12,6 +12,14 @@ export default function CreatorPage() {
         <p key={text}>{text}</p>
       ))}
 
+      <h2>How long it took</h2>
+      <p>{c.buildSummary}</p>
+      <ul>
+        {c.timeline.map((t) => (
+          <li key={t.what}><b>{t.when}.</b> {t.what}</li>
+        ))}
+      </ul>
+
       <div className="callout">
         <p>GitHub: <a href={c.builderGithub} target="_blank" rel="noreferrer">{c.builderGithub.replace("https://", "")}</a></p>
         <p>Email: <a href={`mailto:${university.contact.email}`}>{university.contact.email}</a></p>

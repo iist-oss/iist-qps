@@ -16,8 +16,17 @@ export const university = {
     builtYear: 2026,
     institute: "IIST",
     /** First-person message shown on the "About the builder" page (one string per paragraph). EDIT FREELY. */
+    /** Times (IST, approximate) come from file timestamps in the repo zips + docs/AI_LOG.md session order. */
+    timeline: [
+      { when: "About 9 pm, 4 Oct 2026", what: "Started. Planned it and wrote the first database and code." },
+      { when: "About 10:30 pm", what: "University-only email login working, and the first live site." },
+      { when: "About 11:50 pm", what: "Upload page with automatic detail filling from the PDF." },
+      { when: "About 12:30 am, 5 Oct", what: "Admin review page for approving papers." },
+      { when: "About 12:50 am", what: "Tried the first real IIST papers on the live site." },
+    ],
+    buildSummary: "I built the first version in about four hours, in one evening: from about 9 pm on 4 October to about 1 am on 5 October 2026.",
     message: [
-      "Hi, I'm Harsha Maloth, a student at IIST. I designed and built Campus QPS myself, from the first sketch to the last line of code.",
+      "Hi, I'm Harsha Maloth, a student at IIST. I built Campus QPS, from the first idea to a working site, together with Claude, an AI assistant that wrote the code while I made the decisions and tested it on real IIST papers.",
       "I wanted old question papers to be easy to find for everyone here, without asking around or digging through chats. If you have a paper that is not on the site, please upload it, so the next batch has it too.",
       "If something is broken, wrong or missing, write to me at iistqps@gmail.com and I will look into it.",
     ],

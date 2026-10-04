@@ -211,3 +211,12 @@
 - **Did:** removed every mention of the earlier reference project from site, code comments and docs. Split About into `AboutPage` (the site) and `CreatorPage` (/#/creator, first person, text in `university.credits.message`). Footer links both; builder name links to /creator. D31 updated, config test extended.
 - **Verified here:** node tests (see below). UNTESTED: React pages (CI builds).
 - **Note:** the first-person text is my draft from known facts only; the user may rewrite it in config.
+
+### Session 27 – 2026-10-05 – Build time on the builder page
+- **Did:** user asked to show how long the build took. From this log: started 2026-10-04 (session 1), site + OTP login + upload done the same day (sessions 1-14), admin dashboard + first real papers on 2026-10-05 (sessions 15-24) = two days. Added `credits.timeline` / `buildSummary` and a "How long it took" section on /#/creator.
+- **Correction:** my earlier first-person text said the user built it "to the last line of code"; the logs show the AI wrote the code, so it now says it was built together with Claude. The user can reword it in config.
+- **Not known:** hours worked (logs have dates only).
+
+### Session 28 – 2026-10-05 – Build time in hours
+- **Did:** user asked to use time. Device time = 01:02 IST on 2026-10-05. File timestamps in the user's zip run 15:36 to 19:17 UTC on 2026-10-04 = 21:06 to 00:47 IST (consistent with the zip upload at 00:52 IST), i.e. about 3 h 40 min of file activity, about 4 h to now. This also explains the log dates: sessions 15-24 are after midnight IST. So session 27's "two days" was wrong in elapsed time (two calendar dates, one evening). Timeline and summary in `university.credits` rewritten with approximate IST times.
+- **Caveat:** mtimes are not exact (analysis before the first file, waiting on CI/user steps are inside the span). Hence "about".

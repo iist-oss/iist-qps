@@ -11,5 +11,7 @@ test("credits are filled in", () => {
   assert.ok(university.credits.builderName.trim().length > 2);
   assert.ok(university.credits.builderGithub.startsWith("https://github.com/"));
   assert.ok(university.credits.message.length >= 1);
+  assert.ok(university.credits.timeline.length >= 1);
+  assert.ok(university.credits.buildSummary.length > 10);
   assert.match(university.credits.message[0], /\bI\b|\bI'm\b/);
 });
