@@ -63,7 +63,7 @@ drop policy if exists admins_self_read on public.admins;
 create policy admins_self_read on public.admins for select to authenticated
   using (user_id = auth.uid());
 
--- Search: port of IQPS reciprocal-rank-fusion query, fully parameterised.
+-- Search: reciprocal-rank fusion of trigram, full-text and prefix matches, fully parameterised.
 create or replace function public.search_papers(q text, exams text[] default '{}')
 returns table (id bigint, file_path text, from_library boolean, course_code text,
                course_name text, year integer, semester text, exam text, note text)

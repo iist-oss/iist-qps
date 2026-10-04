@@ -5,13 +5,13 @@ GitHub Pages + Supabase. Reason: user requirement, zero server cost/ops.
 Consequence: security lives in RLS + SQL functions + Edge Functions.
 
 ## D2 – Login required for upload (2026-10-04)
-Original IQPS allowed anonymous uploads. We require auth to limit abuse. Search stays public.
+An earlier design allowed anonymous uploads. We require auth to limit abuse. Search stays public.
 
 ## D3 – Two buckets (2026-10-04)
 `unapproved` private, `approved` public. Approval = move file via Edge Function.
 
 ## D4 – Store `file_path` not full URL (2026-10-04)
-Same slug idea as IQPS; frontend builds the public URL. Lets us move storage later (e.g. R2).
+Slug-style paths; frontend builds the public URL. Lets us move storage later (e.g. R2).
 
 ## D5 – HashRouter for Pages (2026-10-04)
 GitHub Pages has no SPA fallback; HashRouter avoids 404s on deep links.
@@ -90,4 +90,4 @@ Supersedes D28. 47 MiB = 49,283,072 bytes stays under 50,000,000 in case Supabas
 First production test: the four lab exercises (same code/year/exam, blank note) listed each other as "possible duplicates", and ticking replace would have trashed the others. Now (a) autofill puts "Exercise N" / "Experiment N" / "Assignment N" (digits or roman) in the Note, from file names and paper text, and (b) `findSimilar` treats two papers whose notes are both filled and different as different papers (also "Slot A" vs "Slot B"). A blank note still matches, so a real re-upload is still flagged.
 
 ## D31 – Branding stays "Campus QPS"; builder credit is permanent and visible (2026-10-05, session 25, user decision)
-The site name is unchanged. To make sure the builder is remembered: `university.credits` (config) feeds a footer line on every page ("Built by <name>, IIST"), an About page (`/#/about`), `public/humans.txt`, `<meta name="author">` and the README. Takedown & privacy page at `/#/takedown`, contact = iistqps@gmail.com + GitHub issues (public, so the page says not to post personal data there). Procedure for admins: docs/TAKEDOWN_PROCEDURE.md. The builder name is taken from the GitHub handle (harsha-maloth) and must be confirmed by the user.
+The site name is unchanged. To make sure the builder is remembered: `university.credits` (config) feeds a footer line on every page ("Built by <name>, IIST"), an About page about the site (`/#/about`) and a separate first-person "About the builder" page (`/#/creator`, text in `credits.message`), `public/humans.txt`, `<meta name="author">` and the README. Takedown & privacy page at `/#/takedown`, contact = iistqps@gmail.com + GitHub issues (public, so the page says not to post personal data there). Procedure for admins: docs/TAKEDOWN_PROCEDURE.md. The builder name is taken from the GitHub handle (harsha-maloth) and must be confirmed by the user.

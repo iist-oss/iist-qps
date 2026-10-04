@@ -45,7 +45,7 @@ export function validateDetails(d: PaperDetails, requireComplete: boolean): Vali
   return errors.length ? { ok: false, errors } : { ok: true, value: { course_code, course_name, year, exam, semester, note } };
 }
 
-/** Port of the original IQPS sanitize_path: ASCII alphanumerics/underscore, words joined by '-'. */
+/** Path sanitiser: ASCII alphanumerics/underscore, words joined by '-'. */
 export function sanitizePath(s: string): string {
   return s.replaceAll("/", "-").replaceAll("-", " ").split(/\s+/).filter(Boolean)
     .map((p) => p.replace(/[^A-Za-z0-9_]/g, "")).filter(Boolean).join("-");

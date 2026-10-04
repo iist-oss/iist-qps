@@ -8,6 +8,7 @@ import AdminPage from "./pages/AdminPage";
 import LoginPage from "./pages/LoginPage";
 import StatusPage from "./pages/StatusPage";
 import AboutPage from "./pages/AboutPage";
+import CreatorPage from "./pages/CreatorPage";
 import TakedownPage from "./pages/TakedownPage";
 import { configIssues, isConfigured } from "./lib/supabase";
 import { university } from "./config/university";
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="/" element={<SearchPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/creator" element={<CreatorPage />} />
             <Route path="/takedown" element={<TakedownPage />} />
             <Route path="/status" element={<StatusPage />} />
             <Route path="/upload" element={<UploadPage />} />
@@ -42,9 +44,9 @@ export default function App() {
         <footer className="site-footer">
           <p>{university.name} · papers are shared by students for study use</p>
           <p>
-            <Link to="/about">About</Link> · <Link to="/takedown">Takedown &amp; privacy</Link>
+            <Link to="/about">About</Link> · <Link to="/creator">About the builder</Link> · <Link to="/takedown">Takedown &amp; privacy</Link>
           </p>
-          <p>Built by <a href={university.credits.builderGithub} target="_blank" rel="noreferrer">{university.credits.builderName}</a>, {university.credits.institute}</p>
+          <p>Built by <Link to="/creator">{university.credits.builderName}</Link>, {university.credits.institute}</p>
         </footer>
         <Toaster toastOptions={{ position: "bottom-center" }} />
       </AuthProvider>

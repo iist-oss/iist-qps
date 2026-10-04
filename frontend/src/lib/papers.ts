@@ -44,7 +44,7 @@ export function availableYears(results: Paper[]): number[] {
   return [...new Set(results.map((r) => r.year))].sort((a, b) => b - a);
 }
 
-/** Port of IQPS behaviour: sorting by year while filtered to one year falls back to course name. */
+/** Sorting by year while filtered to one year falls back to course name. */
 export function filterAndSort(
   results: Paper[],
   opts: { year: number | null; sortBy: SortBy; order: SortOrder },

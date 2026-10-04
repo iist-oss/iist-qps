@@ -1,10 +1,9 @@
 # AI_CONTEXT – read me first
 
 ## Goal
-A "question paper search" web app for **<UNIVERSITY NAME – see OPEN_QUESTIONS Q1>**:
+A "question paper search" web app for **IIST** (site name: Campus QPS):
 students search old exam papers, upload new ones; admins review/approve.
-Inspired by IIT Kharagpur's IQPS (github.com/metakgp/iqps-go). We do NOT copy its
-server; we re-implement on a serverless stack.
+Built on a serverless stack (no custom server).
 
 ## Stack (fixed – see DECISIONS D1)
 - Frontend: React 18 + TypeScript + Vite + SCSS, hosted on **GitHub Pages**
@@ -30,7 +29,7 @@ Tests: `supabase/tests/*.sql` (pgTAP), run in CI. See PLAN.md 'Verification stra
 Buckets: `unapproved` (private), `approved` (public). PDFs only, 47 MiB max (migration 0009; just under the Supabase Free plan 50 MB project-wide maximum). Users may only insert rows whose `file_path` is `unapproved/<their uid>/...`; trashed uploads live in `unapproved/trash/<id>.pdf`.
 Local SQL check without Supabase: `tools/local-db-test/run.sh` (plain Postgres + stubs + pgTAP shim).
 
-## Lessons carried over from the original IQPS (do not repeat these)
+## Lessons from earlier question-paper projects (do not repeat these)
 1. Open, unauthenticated upload endpoint, content-type trusted from client -> we require
    login, enforce MIME + size in the bucket, and cap uploads per user per day.
 2. Delete/hard-delete/edit touched DB and disk separately -> inconsistent states. We do
@@ -44,7 +43,7 @@ Local SQL check without Supabase: `tools/local-db-test/run.sh` (plain Postgres +
 8. Search ranking = reciprocal-rank fusion of trigram (`%>>`), full-text, and prefix
    matching. Keep this; it works well.
 
-## Reusable pieces from the original frontend
+## Frontend features (search, upload, admin)
 Search page (filters/sort/share-link), upload flow with OCR autofill
 (`extractDetailsFromText` regexes: course code `[A-Z]{2}\d{5}`, exam, semester, year,
 slot/supplementary note), admin dashboard (approve queue, similar-paper detection,

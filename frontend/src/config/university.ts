@@ -15,6 +15,12 @@ export const university = {
     builderGithub: "https://github.com/harsha-maloth",
     builtYear: 2026,
     institute: "IIST",
+    /** First-person message shown on the "About the builder" page (one string per paragraph). EDIT FREELY. */
+    message: [
+      "Hi, I'm Harsha Maloth, a student at IIST. I designed and built Campus QPS myself, from the first sketch to the last line of code.",
+      "I wanted old question papers to be easy to find for everyone here, without asking around or digging through chats. If you have a paper that is not on the site, please upload it, so the next batch has it too.",
+      "If something is broken, wrong or missing, write to me at iistqps@gmail.com and I will look into it.",
+    ],
   },
   /** Shown on the login page. Real enforcement is in the DB:
    *  app_settings.allowed_email_domain (comma-separated) + the sign-up trigger from migration 0005 + email_domain_ok (0006). Keep in sync. */

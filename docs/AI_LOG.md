@@ -11,7 +11,7 @@
 ---
 
 ### Session 1 – 2026-10-04 – Analyse original repo
-- **Did:** Read the whole iqps-go repo (Rust backend, Go crawler, React frontend, CI). Listed 11 issues (captured in AI_CONTEXT.md "Lessons").
+- **Did:** Analysed an existing open-source question-paper search project and listed 11 issues (captured in AI_CONTEXT.md "Lessons").
 - **Files touched:** none (analysis only)
 - **State left in:** understanding complete
 - **Next step:** plan the port
@@ -206,3 +206,8 @@
 - **Verified here:** 54 node tests pass. UNTESTED: the two pages and footer (React; CI builds them).
 - **To confirm with user:** full name shown (assumed "Harsha Maloth" from the GitHub handle); GitHub Issues enabled on the repo; the batch 2/3 and lab-card steps from session 24 are still pending on their side.
 - **Next step:** user pushes; batches 2/3; optional LICENSE choice (copyright line with the builder's name).
+
+### Session 26 – 2026-10-05 – Two About pages, reference project mentions removed
+- **Did:** removed every mention of the earlier reference project from site, code comments and docs. Split About into `AboutPage` (the site) and `CreatorPage` (/#/creator, first person, text in `university.credits.message`). Footer links both; builder name links to /creator. D31 updated, config test extended.
+- **Verified here:** node tests (see below). UNTESTED: React pages (CI builds).
+- **Note:** the first-person text is my draft from known facts only; the user may rewrite it in config.

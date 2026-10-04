@@ -10,4 +10,6 @@ test("contact details are well formed", () => {
 test("credits are filled in", () => {
   assert.ok(university.credits.builderName.trim().length > 2);
   assert.ok(university.credits.builderGithub.startsWith("https://github.com/"));
+  assert.ok(university.credits.message.length >= 1);
+  assert.match(university.credits.message[0], /\bI\b|\bI'm\b/);
 });

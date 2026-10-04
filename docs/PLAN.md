@@ -12,7 +12,7 @@ user confirms it ran. Until then it stays [~]. Each session starts by asking for
 the latest CI result, if any, and fixing failures first.
 
 ## Done
-- [x] S1 Analyse original IQPS
+- [x] S1 Analyse prior art
 - [x] S2 Repo skeleton, AI context/log system
 - [x] S3 Review of S2 SQL: fixed 2 bugs (empty prefix query crash; users could preset approved_by)
 

@@ -4,7 +4,7 @@ export const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-/** Standard response shape, same as the original IQPS: {status, message, data}. */
+/** Standard response shape: {status, message, data}. */
 export function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
