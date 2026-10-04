@@ -7,7 +7,6 @@ export interface Catalogues { names: Record<string, string>; sems: Record<string
 
 type DbRow = { code: string; name: string; source?: string; sem_no?: number | null };
 
-/** Reads the table; if the `sem_no` column does not exist yet (migration 0012 not applied) it reads without it. */
 async function readCourses(extra: string): Promise<{ rows: DbRow[]; error: string | null; hasSem: boolean }> {
   const first = await supabase.from("courses").select(`code,name${extra},sem_no`).order("code").limit(5000);
   if (!first.error) return { rows: (first.data ?? []) as unknown as DbRow[], error: null, hasSem: true };
@@ -16,7 +15,6 @@ async function readCourses(extra: string): Promise<{ rows: DbRow[]; error: strin
   return { rows: (second.data ?? []) as unknown as DbRow[], error: null, hasSem: false };
 }
 
-/** Public read (policy courses_public_read). Empty maps if it fails. */
 export async function fetchCatalogue(): Promise<Catalogues> {
   const { rows } = await readCourses("");
   const out: Catalogues = { names: {}, sems: {} };
@@ -33,11 +31,6 @@ export async function listCourses(): Promise<Result<CourseEntry[]>> {
   return { ok: true, data: rows.map((r) => ({ code: r.code, name: r.name, source: r.source ?? "", ...(typeof r.sem_no === "number" ? { sem: r.sem_no } : {}) })) };
 }
 
-/**
- * Admin only (RLS). Adds new codes and replaces the name of existing ones. A row with a semester number also sets it;
- * a row without one leaves the stored number alone (so it is saved in a separate call without the column).
- * If the database does not have `sem_no` yet, everything is saved without it and `semSkipped` is true.
- */
 export async function saveCourses(rows: CourseRow[]): Promise<Result<{ count: number; semSkipped: boolean }>> {
   if (rows.length === 0) return { ok: true, data: { count: 0, semSkipped: false } };
   const now = new Date().toISOString();

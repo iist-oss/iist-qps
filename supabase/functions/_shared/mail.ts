@@ -1,8 +1,6 @@
-// Email helpers shared by scheduled functions: who the admins are, and sending over SMTP (Gmail, port 465).
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
-/** Email addresses of everyone in public.admins (read through the auth admin API; service-role client needed). */
 export async function adminEmails(db: SupabaseClient): Promise<string[]> {
   const { data: admins, error } = await db.from("admins").select("user_id");
   if (error) throw new Error("Could not read admins.");
@@ -14,7 +12,6 @@ export async function adminEmails(db: SupabaseClient): Promise<string[]> {
   return emails;
 }
 
-/** True when SMTP_USER and SMTP_PASS are set. */
 export const smtpConfigured = () => Boolean(Deno.env.get("SMTP_USER") && Deno.env.get("SMTP_PASS"));
 
 export async function sendMail(to: string[], subject: string, content: string): Promise<void> {
@@ -30,6 +27,6 @@ export async function sendMail(to: string[], subject: string, content: string): 
   try {
     await client.send({ from: Deno.env.get("SMTP_FROM") ?? user, to, subject, content });
   } finally {
-    try { await client.close(); } catch { /* ignore */ }
+    try { await client.close(); } catch {  }
   }
 }

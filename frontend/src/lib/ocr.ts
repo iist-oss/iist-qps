@@ -1,12 +1,8 @@
-// Browser-only: reads the first page of a PDF. Text PDFs use pdf.js text; scanned PDFs are
-// rendered to a canvas and OCR'd with tesseract.js. Both libraries are loaded lazily (only on the upload page).
-// UNTESTED in CI beyond type/build checks: needs a real browser.
 import workerUrl from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
 
-const MIN_TEXT_CHARS = 40; // fewer than this -> treat as a scan and OCR it
+const MIN_TEXT_CHARS = 40;
 
 export async function readFirstPageText(file: File): Promise<string> {
-  // The "legacy" build runs on older Android WebViews. Its typings may be missing, hence the ignore.
   // @ts-ignore
   const pdfjs: any = await import("pdfjs-dist/legacy/build/pdf.mjs");
   pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;

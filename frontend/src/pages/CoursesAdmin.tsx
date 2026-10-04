@@ -4,7 +4,6 @@ import { deleteCourse, listCourses, saveCourses, type CourseEntry } from "../api
 import { parseCourseList } from "../lib/courseList";
 import { resetCatalogue } from "../lib/useCatalogue";
 
-/** Admin > Courses: paste a course list, check the preview, save. Approving papers also adds courses by itself. */
 export default function CoursesAdmin() {
   const [text, setText] = useState("");
   const [rows, setRows] = useState<CourseEntry[] | null>(null);
@@ -39,6 +38,15 @@ export default function CoursesAdmin() {
     setRows((cur) => (cur ? cur.filter((c) => c.code !== code) : cur));
   }
 
+  function exportCsv() {
+    const safe = (v: string) => `"${(/^[=+\-@]/.test(v) ? `'${v}` : v).replace(/"/g, '""')}"`;
+    const lines = ["code,name,semester,source", ...(rows ?? []).map((r) => [safe(r.code), safe(r.name), r.sem ?? "", safe(r.source)].join(","))];
+    const url = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url; a.download = "courses.csv"; a.click();
+    URL.revokeObjectURL(url);
+  }
+
   const shown = (rows ?? []).filter((c) => `${c.code} ${c.name}`.toLowerCase().includes(filter.trim().toLowerCase()));
 
   return (
@@ -63,6 +71,9 @@ export default function CoursesAdmin() {
       )}
 
       <h2>Catalogue{rows ? ` (${rows.length})` : ""}</h2>
+      <div className="select-bar">
+        <button type="button" disabled={!rows || rows.length === 0} onClick={exportCsv}>Export CSV</button>
+      </div>
       <input className="course-filter" value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Filter by code or name" aria-label="Filter courses" />
       {error && <p className="form-error" role="alert">{error}</p>}
       {rows === null && !error && <p className="message">Loading…</p>}

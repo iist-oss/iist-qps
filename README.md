@@ -13,7 +13,7 @@ Created by Maloth Harsha (SC26BTECH), Indian Institute of Space Science and Tech
 **This project is no longer maintained by its author.** There will be no further updates, bug fixes or support from him. This repository is the final release.
 
 - You are welcome to **fork it and run or improve your own copy**. If you want to take it over, change every item in [Things to change when you fork](#things-to-change-when-you-fork) first.
-- No licence file is included. Until the owner adds one, others have no formal permission to reuse the code. If you want it forked freely, add a `LICENSE`.
+- Licensed under the MIT License (see `LICENSE`). Note that the papers themselves belong to their authors and the institute; the licence covers the code only.
 - The contact address shown on the site's Takedown page may stop being monitored. Whoever runs the site must keep that address (or replace it) so removal requests are still answered.
 - **Tests were removed in this release** to keep only what the app needs to run. This cleaned-up version has not been built or run end to end. The last full tested version is the one the cleanup started from (`campus-qps-s32.zip`), if you still have it.
 
@@ -183,7 +183,6 @@ Searching needs no account and stores nothing. Signing in stores the email and w
 - OCR autofill is best-effort and works best on clean, text-based PDFs. Admins should always check details before approving.
 - Only Semester 1 B.Tech courses are seeded. Others are learned from approved papers.
 - There is no automated test suite in this release.
-- Some comments at the top of early migrations (such as "not yet run on Supabase") are out of date. The migrations themselves were applied in production.
 
 ---
 

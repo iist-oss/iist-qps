@@ -1,6 +1,3 @@
-// Pure text helpers for the daily digest email (no Deno APIs, so they are easy to test).
-
-/** "3 days", "5 hours", "20 minutes" - how long the oldest waiting paper has been waiting. */
 export function waitingLabel(oldestIso: string | null, now: Date = new Date()): string {
   if (!oldestIso) return "";
   const ms = now.getTime() - new Date(oldestIso).getTime();
@@ -20,7 +17,7 @@ export interface DigestInput {
   pending: number;
   newLast24h: number;
   oldestIso: string | null;
-  site: string; // "" when SITE_URL is not set
+  site: string;
   now?: Date;
 }
 

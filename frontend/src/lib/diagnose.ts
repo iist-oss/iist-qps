@@ -1,11 +1,10 @@
-// Pure helpers for the /status page (no React/Supabase imports; unit-tested under Node).
 export interface KeyInfo {
   present: boolean;
   length: number;
-  prefix: string;       // first 6 characters only, never the whole key
+  prefix: string;
   kind: "jwt" | "publishable" | "secret" | "unknown" | "missing";
-  role: string | null;  // from a JWT key: "anon" is correct, "service_role" is a leak
-  ref: string | null;   // from a JWT key: the project the key belongs to
+  role: string | null;
+  ref: string | null;
 }
 
 function b64urlToString(s: string): string {
@@ -24,18 +23,16 @@ export function describeKey(key: string | undefined): KeyInfo {
     try {
       const payload = JSON.parse(b64urlToString(parts[1])) as { role?: string; ref?: string };
       return { ...base, kind: "jwt", role: payload.role ?? null, ref: payload.ref ?? null };
-    } catch { /* fall through */ }
+    } catch {  }
   }
   return { ...base, kind: "unknown" };
 }
 
-/** The project ref is the first label of https://<ref>.supabase.co */
 export function refFromUrl(url: string | undefined): string | null {
   const m = /^https?:\/\/([a-z0-9]+)\.supabase\.co\/?$/i.exec((url ?? "").trim());
   return m ? m[1].toLowerCase() : null;
 }
 
-/** Plain-language verdict on the key/URL pair. Returns a list of problems (empty = looks fine). */
 export function keyProblems(url: string | undefined, info: KeyInfo): string[] {
   const out: string[] = [];
   if (!url) out.push("VITE_SUPABASE_URL is empty in this build.");
@@ -49,6 +46,5 @@ export function keyProblems(url: string | undefined, info: KeyInfo): string[] {
   return out;
 }
 
-/** URL + key problems straight from the raw env values (used by the banner and the build check). */
 export const configProblems = (url: string | undefined, key: string | undefined): string[] =>
   keyProblems(url, describeKey(key));

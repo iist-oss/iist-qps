@@ -1,11 +1,9 @@
-// Pure autofill logic (no React/Supabase/config imports) so it runs under plain Node tests.
-// Patterns come in through `opts` (from src/config/university.ts) – see D7, D12.
 export type SemesterValue = "" | "odd" | "even";
 
 export interface Detected {
   course_code: string;
   year: number | null;
-  exam: string; // '' | midsem | endsem | lab | assignment | ct | ct<N>
+  exam: string;
   semester: SemesterValue;
   note: string;
 }
@@ -13,15 +11,12 @@ export interface Detected {
 export interface AutofillOptions {
   courseCodePattern: RegExp;
   semesterAliases: Record<string, "odd" | "even">;
-  /** Latest plausible year (default: current year + 1). */
   maxYear?: number;
 }
 
 export const EMPTY_DETECTED: Detected = { course_code: "", year: null, exam: "", semester: "", note: "" };
 
-// Institute codes: 2-4 letters, 3-5 digits, optional 1-letter suffix (MA111C, CH112H, AA131V). Keep in sync with config + validate.ts
 const FINAL_CODE_RE = /^([A-Z]{2,4})(\d{3,5})([A-Z]?)$/;
-// Words that look like a course-code prefix ("Page 12 of 2023") but are not.
 const CODE_STOPWORDS = new Set([
   "YEAR", "DATE", "DATED", "PAGE", "PAGES", "TIME", "MARK", "MARKS", "ROLL", "NO", "OF", "IN", "ON", "TO",
   "AT", "BY", "FOR", "SEM", "EXAM", "TEST", "TOTAL", "FULL", "PART", "SET", "QUES", "NOTE", "AND", "THE",
@@ -41,7 +36,7 @@ export function findCourseCode(text: string, pattern: RegExp): string {
     const letters = parts[1];
     const digits = parts[2];
     if (CODE_STOPWORDS.has(letters)) continue;
-    if (digits.length === 4 && /^(19|20)\d\d$/.test(digits)) continue; // that is a year
+    if (digits.length === 4 && /^(19|20)\d\d$/.test(digits)) continue;
     return norm;
   }
   return "";
@@ -62,13 +57,14 @@ const EXAM_PATTERNS: Array<[RegExp, (m: RegExpExecArray) => string]> = [
   [/\bend[\s_\u2013\u2014-]*sem(?:ester)?\b/i, () => "endsem"],
   [/\bend[\s_\u2013\u2014-]*term(?:inal)?\b/i, () => "endsem"],
   [/\bfinal[\s_\u2013\u2014-]*exam(?:ination)?\b/i, () => "endsem"],
+  [/\bsem(?:ester)?[\s_\u2013\u2014-]*end\b/i, () => "endsem"],
+  [/\b(?:unit|periodical|surprise)[\s_\u2013\u2014-]*test(?:[\s_\u2013\u2014-]*(?:no\.?\s*)?(IV|V|III|II|I|[1-9])\b)?/i, (m) => "ct" + (m[1] ? (ROMAN[m[1].toUpperCase()] ?? m[1]) : "")],
+  [/\bquiz\b(?:[\s_\u2013\u2014-]*(?:no\.?\s*)?(IV|V|III|II|I|[1-9])\b)?/i, (m) => "ct" + (m[1] ? (ROMAN[m[1].toUpperCase()] ?? m[1]) : "")],
   [/\bclass[\s_\u2013\u2014-]*test(?:[\s_\u2013\u2014-]*(?:no\.?\s*)?(\d))?/i, (m) => "ct" + (m[1] ?? "")],
   [/\bct[\s_\u2013\u2014-]?(\d)\b/i, (m) => "ct" + m[1]],
-  // "Test I", "TEST-II", "Test 2" (a numbered test = class test N)
   [/\btest[\s_\u2013\u2014-]*(?:no\.?\s*)?(IV|V|III|II|I|[1-9])\b/i, (m) => "ct" + (ROMAN[m[1].toUpperCase()] ?? m[1])],
 ];
 
-// Non-exam material. Only used when no real exam wording is found, so a midsem header that mentions "Laboratory" stays a midsem.
 const EXTRA_PATTERNS: Array<[RegExp, string]> = [
   [/\bassignments?\b/i, "assignment"],
   [/\blab(?:oratory)?\b/i, "lab"],
@@ -94,7 +90,6 @@ export function findSemester(text: string, aliases: Record<string, "odd" | "even
   const words = Object.keys(aliases);
   if (words.length === 0) return "";
   const alt = words.map(escapeRe).join("|");
-  // 1) a semester word right next to "semester"/"sem": "Autumn Semester", "Semester: Even"
   const adj = new RegExp(
     `\\b(${alt})\\b[\\s:,_-]*(?:semester|sem)\\b|\\b(?:semester|sem)\\b[\\s:,_-]*\\b(${alt})\\b`, "i");
   const m = adj.exec(text);
@@ -102,17 +97,12 @@ export function findSemester(text: string, aliases: Record<string, "odd" | "even
     const w = (m[1] ?? m[2]).toLowerCase();
     return aliases[w] ?? "";
   }
-  // 2) bare season names only ("even"/"odd" alone are too common in ordinary text)
   const bareWords = words.filter((w) => w !== "even" && w !== "odd");
   if (bareWords.length === 0) return "";
   const bare = new RegExp(`\\b(${bareWords.map(escapeRe).join("|")})\\b`, "i").exec(text);
   return bare ? (aliases[bare[1].toLowerCase()] ?? "") : "";
 }
 
-/**
- * "B.Tech - I Semester", "1st Semester", "Semester 5": semester 1,3,5,7 = odd, 2,4,6,8 = even (D12).
- * Roman numerals must be written in capitals so ordinary words ("i semester") do not count.
- */
 export function findSemesterByNumber(text: string): SemesterValue {
   const tok = "(VIII|VII|VI|IV|V|III|II|I|[1-8])";
   const sem = "(?:semester|sem)(?![a-z])";
@@ -123,7 +113,7 @@ export function findSemesterByNumber(text: string): SemesterValue {
   for (const re of forms) {
     for (const m of text.matchAll(re)) {
       const t = m[1];
-      if (/^[A-Za-z]+$/.test(t) && t !== t.toUpperCase()) continue; // "i semester" is not a numeral
+      if (/^[A-Za-z]+$/.test(t) && t !== t.toUpperCase()) continue;
       const n = ROMAN[t.toUpperCase()] ?? Number(t);
       if (n >= 1 && n <= 8) return n % 2 === 1 ? "odd" : "even";
     }
@@ -140,7 +130,6 @@ export function findNote(text: string): string {
     const w = sup[1].toLowerCase();
     parts.push(w.startsWith("make") ? "Make-up" : w.startsWith("re") ? "Re-exam" : "Supplementary");
   }
-  // "Exercise-1", "Exercise IV", "Experiment 3", "Assignment 2": numbered material (labs/assignments) is not a duplicate of its siblings.
   const num = /\b(exercise|experiment|assignment)\b[\s_\u2013\u2014:#.-]*(\d{1,2}|[ivx]{1,4})(?![A-Za-z0-9])/i.exec(text);
   if (num) {
     const t = num[2];
@@ -161,16 +150,13 @@ export function extractDetails(text: string, opts: AutofillOptions): Detected {
   };
 }
 
-/** File names like `MA101_midsem_2023.pdf` -> details (underscores/dots count as spaces). */
 export function detailsFromFilename(name: string, opts: AutofillOptions): Detected {
   const cleaned = name.replace(/\.pdf$/i, "").replace(/[_.]+/g, " ");
   const d = extractDetails(cleaned, opts);
-  // A bare "ct" word is only trusted in file names ("PH112C_ct_2024.pdf"); in paper text it could mean "CT scan".
   if (d.exam === "" && /(^|[\s-])ct([\s-]|$)/i.test(cleaned)) d.exam = "ct";
   return d;
 }
 
-/** Fill only what `primary` left blank. */
 export function mergeDetected(primary: Detected, fallback: Detected): Detected {
   return {
     course_code: primary.course_code || fallback.course_code,

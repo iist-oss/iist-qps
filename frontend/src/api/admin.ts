@@ -1,22 +1,29 @@
 import { supabase } from "../lib/supabase";
-import { approveProblems, findSimilar, formToFields, normCode, type AdminPaper } from "../lib/admin";
+import { approveProblems, chunk, findSimilar, formToFields, normCode, type AdminPaper } from "../lib/admin";
 import type { FormDetails } from "../lib/upload";
 
 export type AdminList = "pending" | "approved" | "trash";
 export type Result<T> = { ok: true; data: T } | { ok: false; error: string };
 
 const COLS = "id,file_path,from_library,course_code,course_name,year,semester,exam,note,upload_timestamp,approve_status,is_deleted";
-const PAGE = 100;
+export const PAGE_SIZE = 50;
 
-/** Admins can read every row (RLS policy papers_admin_all). */
-export async function listPapers(list: AdminList): Promise<Result<AdminPaper[]>> {
-  let q = supabase.from("papers").select(COLS).limit(PAGE);
+export interface PagedPapers { rows: AdminPaper[]; total: number }
+
+export async function listPapers(list: AdminList, opts: { page?: number; search?: string } = {}): Promise<Result<PagedPapers>> {
+  const from = (opts.page ?? 0) * PAGE_SIZE;
+  let q = supabase.from("papers").select(COLS, { count: "exact" }).range(from, from + PAGE_SIZE - 1);
   if (list === "pending") q = q.eq("approve_status", false).eq("is_deleted", false).order("upload_timestamp", { ascending: true });
   else if (list === "approved") q = q.eq("approve_status", true).eq("is_deleted", false).order("upload_timestamp", { ascending: false });
   else q = q.eq("is_deleted", true).order("upload_timestamp", { ascending: false });
-  const { data, error } = await q;
+  const term = (opts.search ?? "").replace(/[%,()*\\"']/g, " ").replace(/\s+/g, " ").trim();
+  if (term !== "") {
+    const idPart = /^#?\d{1,9}$/.test(term) ? `,id.eq.${term.replace("#", "")}` : "";
+    q = q.or(`course_code.ilike.%${term}%,course_name.ilike.%${term}%,note.ilike.%${term}%${idPart}`);
+  }
+  const { data, error, count } = await q;
   if (error) return { ok: false, error: error.message };
-  return { ok: true, data: (data ?? []) as AdminPaper[] };
+  return { ok: true, data: { rows: (data ?? []) as AdminPaper[], total: count ?? (data ?? []).length } };
 }
 
 export async function countPending(): Promise<number> {
@@ -25,14 +32,12 @@ export async function countPending(): Promise<number> {
   return error ? 0 : count ?? 0;
 }
 
-/** Same course code and year, not in trash (the exam/semester filter happens in lib/admin.findSimilar). */
 export async function listSameCourseYear(code: string, year: number): Promise<AdminPaper[]> {
   const { data, error } = await supabase.from("papers").select(COLS)
     .eq("course_code", code).eq("year", year).eq("is_deleted", false).limit(50);
   return error ? [] : ((data ?? []) as AdminPaper[]);
 }
 
-/** Every non-trashed paper that has one of these course codes (bulk approve uses it to spot look-alikes in one query). */
 export async function listByCourseCodes(codes: string[]): Promise<AdminPaper[]> {
   const uniq = [...new Set(codes.filter((c) => c !== ""))];
   if (uniq.length === 0) return [];
@@ -41,7 +46,6 @@ export async function listByCourseCodes(codes: string[]): Promise<AdminPaper[]> 
   return error ? [] : ((data ?? []) as AdminPaper[]);
 }
 
-/** Short-lived link to view a PDF, also works for the private `unapproved` bucket (admin storage policy). */
 export async function signedPdfUrl(filePath: string): Promise<Result<string>> {
   const i = filePath.indexOf("/");
   if (i < 0) return { ok: false, error: "Bad file path." };
@@ -52,14 +56,13 @@ export async function signedPdfUrl(filePath: string): Promise<Result<string>> {
 
 interface Envelope<T> { status: "success" | "error"; message: string; data: T }
 
-/** Calls an Edge Function and turns every failure into a readable message. */
 async function call<T>(name: string, body: unknown): Promise<Result<T>> {
   const { data, error } = await supabase.functions.invoke(name, { body: body as Record<string, unknown> });
   if (error) {
     let msg = error.message;
     const ctx = (error as unknown as { context?: { json?: () => Promise<Envelope<unknown>> } }).context;
     if (ctx && typeof ctx.json === "function") {
-      try { const j = await ctx.json(); if (j && typeof j.message === "string" && j.message) msg = j.message; } catch { /* keep msg */ }
+      try { const j = await ctx.json(); if (j && typeof j.message === "string" && j.message) msg = j.message; } catch {  }
     }
     return { ok: false, error: msg };
   }
@@ -72,7 +75,6 @@ export interface EditFields {
   course_code: string; course_name: string; year: number; exam: string; semester: string; note: string;
 }
 
-/** Save details and set approval in one go. `replace` = ids of duplicates to move to trash in the same transaction. */
 export const savePaper = (id: number, fields: EditFields, approve: boolean, replace: number[]) =>
   call<AdminPaper>("approve-paper", { id, ...fields, approve_status: approve, replace });
 
@@ -80,15 +82,21 @@ export interface DeleteReport { id: number; status: string; message: string }
 export const deletePapers = (ids: number[], mode: "soft" | "restore" | "hard") =>
   call<DeleteReport[]>("delete-paper", { ids, mode });
 
-/** Tells the header badge (and anything else) that counts changed. */
+export async function deleteMany(ids: number[], mode: "soft" | "restore" | "hard"): Promise<Result<DeleteReport[]>> {
+  const all: DeleteReport[] = [];
+  for (const part of chunk(ids, 100)) {
+    const r = await deletePapers(part, mode);
+    if (r.ok) all.push(...r.data);
+    else if (all.length === 0) return r;
+    else all.push(...part.map((id) => ({ id, status: "error", message: r.error })));
+  }
+  return { ok: true, data: all };
+}
+
 export const notifyChanged = () => window.dispatchEvent(new Event("qps:papers-changed"));
 
 export type AutoApprove = { approved: true } | { approved: false; reason: string };
 
-/**
- * B1: an admin's own upload goes live at once when the details are complete and nothing looks like a duplicate.
- * Otherwise it stays in the review queue and `reason` says why. Never throws.
- */
 export async function autoApprove(id: number, form: FormDetails): Promise<AutoApprove> {
   const problems = approveProblems(form, new Date().getFullYear());
   if (problems.length > 0) return { approved: false, reason: problems[0] };

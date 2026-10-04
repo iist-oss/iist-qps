@@ -1,4 +1,3 @@
--- 0001: schema, RLS, search. STATUS: applies cleanly on Postgres 16 (session 7); not yet run on Supabase itself
 create extension if not exists pg_trgm;
 
 create table if not exists public.admins (
@@ -40,30 +39,24 @@ create unique index if not exists papers_hash_uniq on public.papers (file_hash)
 alter table public.papers enable row level security;
 alter table public.admins enable row level security;
 
--- Public can read approved, non-deleted papers
 drop policy if exists papers_public_read on public.papers;
 create policy papers_public_read on public.papers for select to anon, authenticated
   using (approve_status and not is_deleted);
--- Uploaders can see their own rows
 drop policy if exists papers_own_read on public.papers;
 create policy papers_own_read on public.papers for select to authenticated
   using (uploaded_by = auth.uid());
--- Logged-in users may insert only unapproved, non-library rows owned by them
 drop policy if exists papers_user_insert on public.papers;
 create policy papers_user_insert on public.papers for insert to authenticated
   with check (uploaded_by = auth.uid() and not approve_status
               and not from_library and not is_deleted
               and approved_by is null and file_hash is null);
--- Admins can do everything
 drop policy if exists papers_admin_all on public.papers;
 create policy papers_admin_all on public.papers for all to authenticated
   using (public.is_admin()) with check (public.is_admin());
--- admins table: a user can only see their own row (lets the UI check admin status)
 drop policy if exists admins_self_read on public.admins;
 create policy admins_self_read on public.admins for select to authenticated
   using (user_id = auth.uid());
 
--- Search: reciprocal-rank fusion of trigram, full-text and prefix matches, fully parameterised.
 create or replace function public.search_papers(q text, exams text[] default '{}')
 returns table (id bigint, file_path text, from_library boolean, course_code text,
                course_name text, year integer, semester text, exam text, note text)
@@ -90,7 +83,7 @@ language sql stable security invoker set search_path = public as $$
     where f.fts @@ websearch_to_tsquery('english', q)
     order by rix limit 30
   ),
-  pq as (  -- prefix query; NULL when the input has no searchable terms
+  pq as (
     select case when numnode(websearch_to_tsquery('simple', q)) = 0 then null
                 else to_tsquery('simple', websearch_to_tsquery('simple', q)::text || ':*')
            end as tsq

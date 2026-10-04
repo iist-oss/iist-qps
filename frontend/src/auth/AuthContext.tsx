@@ -8,13 +8,10 @@ import { friendlyAuthError, looksLikeEmail, normalizeEmail } from "../lib/email"
 interface AuthState {
   user: User | null;
   session: Session | null;
-  isAdmin: boolean; // UI hint only; real enforcement is RLS + Edge Functions
+  isAdmin: boolean;
   loading: boolean;
-  /** Goes to the sign-in page (email one-time code, D21). */
   signIn: () => void;
-  /** Emails a one-time code. Returns an error message, or null on success. */
   sendCode: (email: string) => Promise<string | null>;
-  /** Checks the code. Returns an error message, or null on success (session is then set). */
   verifyCode: (email: string, code: string) => Promise<string | null>;
   signOut: () => Promise<void>;
 }
@@ -36,7 +33,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  // Separate effect: calling supabase inside onAuthStateChange can deadlock.
   const userId = session?.user.id;
   useEffect(() => {
     if (!userId) { setIsAdmin(false); return; }
@@ -55,7 +51,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sendCode: async (raw) => {
       const email = normalizeEmail(raw);
       if (!looksLikeEmail(email)) return "Enter a valid email address.";
-      // Ask the DB first so outsiders get a clear message (the sign-up trigger is the real lock).
       const { data: allowed, error: rpcErr } = await supabase.rpc("email_domain_ok", { p_email: email });
       if (!rpcErr && allowed === false) {
         const list = university.allowedEmailDomains.map((d) => "@" + d).join(" or ");

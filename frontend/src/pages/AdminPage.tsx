@@ -1,15 +1,14 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { NavLink, Route, Routes } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../auth/AuthContext";
 import ReviewCard from "../components/ReviewCard";
 import CoursesAdmin from "./CoursesAdmin";
-import { deletePapers, listByCourseCodes, listPapers, notifyChanged, savePaper, signedPdfUrl, type AdminList } from "../api/admin";
+import { deleteMany, deletePapers, listByCourseCodes, listPapers, notifyChanged, PAGE_SIZE, savePaper, signedPdfUrl, type AdminList } from "../api/admin";
 import { ageLabel, bulkProblems, formToFields, normCode, paperToForm, UNDO_MS, type AdminPaper } from "../lib/admin";
 import { useCatalogue, useCourseSems } from "../lib/useCatalogue";
 import { withCourseName, withCourseSemester } from "../lib/courses";
 
-// Admin dashboard (B5). UI guard only: RLS and the Edge Functions are the real protection.
 export default function AdminPage() {
   const { isAdmin, loading } = useAuth();
   if (loading) return <div className="page"><p className="message">Loading…</p></div>;
@@ -24,35 +23,64 @@ export default function AdminPage() {
         <NavLink to="/admin/trash">Trash</NavLink>
       </nav>
       <Routes>
-        <Route index element={<ReviewList list="pending" />} />
-        <Route path="approved" element={<ReviewList list="approved" />} />
+        <Route index element={<ReviewList key="pending" list="pending" />} />
+        <Route path="approved" element={<ReviewList key="approved" list="approved" />} />
         <Route path="courses" element={<CoursesAdmin />} />
-        <Route path="trash" element={<TrashList />} />
+        <Route path="trash" element={<TrashList key="trash" />} />
       </Routes>
     </div>
   );
 }
 
-function useList(list: AdminList) {
+function useList(list: AdminList, page: number, search: string) {
   const [rows, setRows] = useState<AdminPaper[] | null>(null);
+  const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const rowsRef = useRef(rows);
+  rowsRef.current = rows;
   const reload = useCallback(async () => {
-    const r = await listPapers(list);
-    if (r.ok) { setRows(r.data); setError(null); } else setError(r.error);
-  }, [list]);
+    const r = await listPapers(list, { page, search });
+    if (r.ok) { setRows(r.data.rows); setTotal(r.data.total); setError(null); } else setError(r.error);
+  }, [list, page, search]);
   useEffect(() => { setRows(null); void reload(); }, [reload]);
-  return { rows, setRows, error, reload };
+  const drop = useCallback((ids: number[]) => {
+    const n = (rowsRef.current ?? []).filter((r) => ids.includes(r.id)).length;
+    setRows((cur) => (cur ? cur.filter((r) => !ids.includes(r.id)) : cur));
+    setTotal((t) => Math.max(0, t - n));
+  }, []);
+  return { rows, total, drop, error, reload };
 }
 
-/** Review queue (pending) and approved list. Delete is delayed by UNDO_MS so it can be undone. */
+function SearchBox({ value, onChange, onSubmit }: { value: string; onChange: (v: string) => void; onSubmit: () => void }) {
+  return (
+    <form className="admin-search" onSubmit={(e: FormEvent) => { e.preventDefault(); onSubmit(); }}>
+      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder="Search code, name, note or #id" aria-label="Search papers" />
+      <button type="submit">Search</button>
+    </form>
+  );
+}
+
+function Pager({ page, total, onPage }: { page: number; total: number; onPage: (p: number) => void }) {
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (pages <= 1) return null;
+  return (
+    <div className="select-bar">
+      <button type="button" disabled={page === 0} onClick={() => onPage(page - 1)}>Previous</button>
+      <span className="muted">Page {page + 1} of {pages}</span>
+      <button type="button" disabled={page >= pages - 1} onClick={() => onPage(page + 1)}>Next</button>
+    </div>
+  );
+}
+
 function ReviewList({ list }: { list: "pending" | "approved" }) {
-  const { rows, setRows, error, reload } = useList(list);
+  const [page, setPage] = useState(0);
+  const [search, setSearch] = useState("");
+  const [draft, setDraft] = useState("");
+  const { rows, total, drop, error, reload } = useList(list, page, search);
   const timers = useRef(new Map<number, ReturnType<typeof setTimeout>>());
-  // Timers are NOT cleared on unmount: leaving the page must not cancel a delete the admin already confirmed.
 
-  const remove = (ids: number[]) => setRows((cur) => (cur ? cur.filter((r) => !ids.includes(r.id)) : cur));
+  const remove = drop;
 
-  // ---- Bulk approve (B2): pending list only. Uses each paper's SAVED details (+ catalogue name / semester). ----
   const catalogue = useCatalogue();
   const sems = useCourseSems();
   const [ticked, setTicked] = useState<Set<number>>(new Set());
@@ -65,7 +93,6 @@ function ReviewList({ list }: { list: "pending" | "approved" }) {
     const codes = rows.flatMap((r) => [r.course_code, normCode(r.course_code)]);
     void listByCourseCodes(codes).then((all) => { if (!cancelled) setSameCourse(all); });
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [list, codesKey]);
   const formFor = useCallback((p: AdminPaper) =>
     withCourseSemester(withCourseName(paperToForm(p), catalogue), sems, catalogue), [catalogue, sems]);
@@ -79,6 +106,26 @@ function ReviewList({ list }: { list: "pending" | "approved" }) {
     }
     return m;
   }, [list, rows, sameCourse, formFor]);
+  const [selDel, setSelDel] = useState<Set<number>>(new Set());
+  const [delBusy, setDelBusy] = useState(false);
+  const goPage = (p: number) => { setPage(p); setSelDel(new Set()); setTicked(new Set()); };
+  const applySearch = () => { setSearch(draft); goPage(0); };
+  const toggleDel = (id: number) => setSelDel((cur) => { const n = new Set(cur); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  async function deleteSelected() {
+    const ids = [...selDel];
+    if (ids.length === 0 || delBusy) return;
+    if (!window.confirm(`Move ${ids.length} paper(s) to Trash?${list === "approved" ? " They will stop appearing in search." : ""}`)) return;
+    setDelBusy(true);
+    const r = await deleteMany(ids, "soft");
+    setDelBusy(false);
+    if (!r.ok) { toast.error(r.error); return; }
+    const okIds = r.data.filter((d) => d.status === "success").map((d) => d.id);
+    const failed = r.data.length - okIds.length;
+    remove(okIds);
+    setSelDel((cur) => new Set([...cur].filter((id) => !okIds.includes(id))));
+    if (okIds.length > 0) { notifyChanged(); toast.success(`${okIds.length} moved to Trash.`); }
+    if (failed > 0) toast.error(`${failed} could not be deleted.`);
+  }
   const readyIds = rows ? rows.filter((r) => bulkInfo.get(r.id)?.ready).map((r) => r.id) : [];
   const tickedReady = readyIds.filter((id) => ticked.has(id));
 
@@ -88,7 +135,7 @@ function ReviewList({ list }: { list: "pending" | "approved" }) {
     setBulkBusy(true);
     let okCount = 0;
     const failed: string[] = [];
-    for (const id of tickedReady) {          // one by one; a failure never stops the rest
+    for (const id of tickedReady) {
       const p = rows.find((r) => r.id === id);
       if (!p) continue;
       const r = await savePaper(id, formToFields(formFor(p)), true, []);
@@ -122,12 +169,34 @@ function ReviewList({ list }: { list: "pending" | "approved" }) {
     }, UNDO_MS));
   }
 
-  if (error) return <p className="form-error" role="alert">{error}</p>;
-  if (rows === null) return <p className="message">Loading…</p>;
-  if (rows.length === 0) return <p className="message">{list === "pending" ? "Nothing waiting for review." : "No approved papers yet."}</p>;
+  const searchBox = <SearchBox value={draft} onChange={setDraft} onSubmit={applySearch} />;
+  if (error) return <>{searchBox}<p className="form-error" role="alert">{error}</p></>;
+  if (rows === null) return <>{searchBox}<p className="message">Loading…</p></>;
+  if (rows.length === 0) {
+    return (
+      <>
+        {searchBox}
+        <p className="message">
+          {search !== "" ? "No papers match your search."
+            : total > 0 ? "This page is empty."
+            : list === "pending" ? "Nothing waiting for review." : "No approved papers yet."}
+        </p>
+        {total > 0 && <div className="select-bar"><button type="button" onClick={() => goPage(Math.max(0, page - 1))}>Go back a page</button></div>}
+      </>
+    );
+  }
   return (
     <>
-      <p className="muted">{rows.length}{rows.length >= 100 ? "+" : ""} {list === "pending" ? "waiting, oldest first" : "most recent"}</p>
+      {searchBox}
+      <p className="muted">{total} {list === "pending" ? "waiting, oldest first" : "approved, most recent first"}{search !== "" ? ` matching “${search}”` : ""}</p>
+      <Pager page={page} total={total} onPage={goPage} />
+      <div className="select-bar">
+        <button type="button" disabled={delBusy} onClick={() => setSelDel(new Set(rows.map((r) => r.id)))}>Select all on page</button>
+        <button type="button" disabled={delBusy || selDel.size === 0} onClick={() => setSelDel(new Set())}>Clear</button>
+        <button type="button" className="danger" disabled={delBusy || selDel.size === 0} onClick={() => void deleteSelected()}>
+          {delBusy ? "Deleting…" : `Move ${selDel.size} to Trash`}
+        </button>
+      </div>
       {list === "pending" && (
         <div className="bulk-bar">
           <span>{sameCourse === null ? "Checking for duplicates…" : `${readyIds.length} ready (complete, no duplicate) · ${tickedReady.length} ticked`}</span>
@@ -147,15 +216,48 @@ function ReviewList({ list }: { list: "pending" | "approved" }) {
           ? { ready: info.ready, reasons: info.reasons, checked: ticked.has(p.id) && info.ready,
               onToggle: () => setTicked((cur) => { const n = new Set(cur); if (n.has(p.id)) n.delete(p.id); else n.add(p.id); return n; }) }
           : undefined;
-        return <ReviewCard key={p.id} paper={p} mode={list} bulk={bulk} onDone={(id) => remove([id])} onDelete={onDelete} onReplaced={remove} />;
+        return (
+          <div key={p.id}>
+            <label className="select-row">
+              <input type="checkbox" checked={selDel.has(p.id)} onChange={() => toggleDel(p.id)} />
+              <span>Select for bulk delete</span>
+            </label>
+            <ReviewCard paper={p} mode={list} bulk={bulk} onDone={(id) => remove([id])} onDelete={onDelete} onReplaced={remove} />
+          </div>
+        );
       })}
+      <Pager page={page} total={total} onPage={goPage} />
     </>
   );
 }
 
 function TrashList() {
-  const { rows, setRows, error, reload } = useList("trash");
+  const [page, setPage] = useState(0);
+  const [search, setSearch] = useState("");
+  const [draft, setDraft] = useState("");
+  const { rows, total, drop, error, reload } = useList("trash", page, search);
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [ticked, setTicked] = useState<Set<number>>(new Set());
+  const goPage = (p: number) => { setPage(p); setTicked(new Set()); };
+  const applySearch = () => { setSearch(draft); goPage(0); };
+  const [manyBusy, setManyBusy] = useState(false);
+  const toggle = (id: number) => setTicked((cur) => { const n = new Set(cur); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+
+  async function actMany(mode: "restore" | "hard") {
+    const ids = [...ticked];
+    if (ids.length === 0 || manyBusy) return;
+    if (mode === "hard" && !window.confirm(`Permanently delete ${ids.length} paper(s)? This cannot be undone.`)) return;
+    setManyBusy(true);
+    const r = await deleteMany(ids, mode);
+    setManyBusy(false);
+    if (!r.ok) { toast.error(r.error); void reload(); return; }
+    const okIds = r.data.filter((d) => d.status === "success").map((d) => d.id);
+    const failed = r.data.length - okIds.length;
+    drop(okIds);
+    setTicked((cur) => new Set([...cur].filter((id) => !okIds.includes(id))));
+    if (okIds.length > 0) { notifyChanged(); toast.success(mode === "restore" ? `${okIds.length} restored to the review queue.` : `${okIds.length} deleted permanently.`); }
+    if (failed > 0) toast.error(`${failed} failed.`);
+  }
 
   async function act(p: AdminPaper, mode: "restore" | "hard") {
     if (mode === "hard" && !window.confirm(`Permanently delete #${p.id} (${p.course_code || "no code"} ${p.year})? This cannot be undone.`)) return;
@@ -168,7 +270,7 @@ function TrashList() {
       void reload();
       return;
     }
-    setRows((cur) => (cur ? cur.filter((x) => x.id !== p.id) : cur));
+    drop([p.id]);
     notifyChanged();
     toast.success(mode === "restore" ? "Restored to the review queue." : "Deleted permanently.");
   }
@@ -178,15 +280,32 @@ function TrashList() {
     if (r.ok) window.open(r.data, "_blank", "noopener"); else toast.error(r.error);
   }
 
-  if (error) return <p className="form-error" role="alert">{error}</p>;
-  if (rows === null) return <p className="message">Loading…</p>;
-  if (rows.length === 0) return <p className="message">Trash is empty.</p>;
+  const searchBox = <SearchBox value={draft} onChange={setDraft} onSubmit={applySearch} />;
+  if (error) return <>{searchBox}<p className="form-error" role="alert">{error}</p></>;
+  if (rows === null) return <>{searchBox}<p className="message">Loading…</p></>;
+  if (rows.length === 0) {
+    return (
+      <>
+        {searchBox}
+        <p className="message">{search !== "" ? "No trashed papers match your search." : total > 0 ? "This page is empty." : "Trash is empty."}</p>
+        {total > 0 && <div className="select-bar"><button type="button" onClick={() => goPage(Math.max(0, page - 1))}>Go back a page</button></div>}
+      </>
+    );
+  }
   return (
     <>
-      <p className="muted">Library papers stay in the public bucket while trashed. For a takedown, delete them permanently.</p>
+      {searchBox}
+      <p className="muted">{total} in Trash. Library papers stay in the public bucket while trashed. For a takedown, delete them permanently.</p>
+      <div className="select-bar">
+        <button type="button" disabled={manyBusy} onClick={() => setTicked(new Set(rows.map((r) => r.id)))}>Select all on page</button>
+        <button type="button" disabled={manyBusy || ticked.size === 0} onClick={() => setTicked(new Set())}>Clear</button>
+        <button type="button" disabled={manyBusy || ticked.size === 0} onClick={() => void actMany("restore")}>Restore {ticked.size}</button>
+        <button type="button" className="danger" disabled={manyBusy || ticked.size === 0} onClick={() => void actMany("hard")}>Delete {ticked.size} permanently</button>
+      </div>
       {rows.map((p) => (
         <div key={p.id} className="upload-card">
           <div className="upload-card-head">
+            <input type="checkbox" checked={ticked.has(p.id)} onChange={() => toggle(p.id)} aria-label={`Select #${p.id}`} />
             <b className="file-name">#{p.id} · {p.course_code || "no code"} · {p.course_name || "no name"} · {p.year}</b>
             <span className="muted">{ageLabel(p.upload_timestamp)}{p.from_library ? " · library" : ""}</span>
           </div>
@@ -197,6 +316,7 @@ function TrashList() {
           </div>
         </div>
       ))}
+      <Pager page={page} total={total} onPage={goPage} />
     </>
   );
 }

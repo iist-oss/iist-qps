@@ -1,6 +1,3 @@
--- 0010 (session 29): self-building course catalogue.
--- code -> name, public read, admin write. Filled automatically when a paper is approved (first name wins,
--- later admin edits are never overwritten) and by an admin "paste a course list" tool.
 create table if not exists public.courses (
   code       text primary key check (code ~ '^[A-Z]{2,4}[0-9]{3,5}[A-Z]?$'),
   name       text not null check (char_length(name) between 1 and 200),
@@ -17,7 +14,6 @@ create policy courses_admin_write on public.courses for all to authenticated
 grant select on public.courses to anon, authenticated;
 grant insert, update, delete on public.courses to authenticated;
 
--- Learn from approved papers. Never blocks an approval: invalid codes / blank names are skipped.
 create or replace function public.learn_course_from_paper()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare
@@ -36,7 +32,6 @@ create trigger papers_learn_course
   after insert or update of approve_status, is_deleted, course_code, course_name on public.papers
   for each row execute function public.learn_course_from_paper();
 
--- Semester 1 (the list given by the user), then whatever approved papers already teach us.
 insert into public.courses (code, name, source) values
   ('MA111C', 'Calculus', 'seed'),
   ('PH112C', 'Mechanics and Electromagnetism', 'seed'),

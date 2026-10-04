@@ -1,6 +1,6 @@
 name: Keepalive (stop free-tier pause)
 on:
-  schedule: [{ cron: '17 3 * * 1,4' }]   # Mon + Thu
+  schedule: [{ cron: '17 3 * * 1,4' }]
   workflow_dispatch:
 jobs:
   ping:

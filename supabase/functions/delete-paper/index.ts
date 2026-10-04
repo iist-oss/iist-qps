@@ -1,10 +1,3 @@
-// POST /functions/v1/delete-paper   (admin only)
-// Body: { ids: number[] (max 100), mode: "soft" | "restore" | "hard" }
-//  soft    -> move to trash (is_deleted = true, approve_status = false); an uploaded paper's file is moved to the
-//             private bucket so it is no longer publicly downloadable (library papers' files stay put)
-//  restore -> take out of trash (stays unapproved, so it re-enters the review queue)
-//  hard    -> permanently delete; only allowed for papers already in the trash
-// Never aborts the batch: returns one result per id.
 import { fail, ok, preflight } from "../_shared/cors.ts";
 import { requireAdmin } from "../_shared/auth.ts";
 import { splitSlug } from "../_shared/validate.ts";
@@ -20,7 +13,6 @@ Deno.serve(async (req) => {
   if (ctx instanceof Response) return ctx;
   const { db } = ctx;
 
-  // deno-lint-ignore no-explicit-any
   let body: any;
   try { body = await req.json(); } catch { return fail("Invalid JSON body."); }
 
@@ -71,7 +63,6 @@ Deno.serve(async (req) => {
         if (selErr) { results.push({ id, status: "error", message: "Database error." }); continue; }
         if (!row) { results.push({ id, status: "error", message: "Not in trash (soft-delete first)." }); continue; }
 
-        // Row first: a row pointing at a missing file is worse than an orphaned file.
         const { error: delErr } = await db.from("papers").delete().eq("id", id);
         if (delErr) { results.push({ id, status: "error", message: "Database error." }); continue; }
 

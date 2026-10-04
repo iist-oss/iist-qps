@@ -1,4 +1,3 @@
--- 0003: app settings, email-domain restriction, daily upload cap. STATUS: applies cleanly on Postgres 16 (session 7)
 create table if not exists public.app_settings (
   key   text primary key,
   value text not null
@@ -12,7 +11,7 @@ create policy settings_admin on public.app_settings for all to authenticated
 
 insert into public.app_settings (key, value) values
   ('daily_upload_cap', '20'),
-  ('allowed_email_domain', '')       -- e.g. 'university.edu'; empty = any logged-in user
+  ('allowed_email_domain', '')
 on conflict (key) do nothing;
 
 create or replace function public.email_allowed()
@@ -50,15 +49,11 @@ drop trigger if exists papers_upload_cap on public.papers;
 create trigger papers_upload_cap before insert on public.papers
   for each row execute function public.enforce_upload_cap();
 
--- Storage rules that depend on the settings above (kept here because 0002 runs before email_allowed() exists).
--- 1) The email-domain restriction also applies to file uploads, not just to rows.
 drop policy if exists unapproved_user_insert on storage.objects;
 create policy unapproved_user_insert on storage.objects for insert to authenticated
   with check (bucket_id = 'unapproved'
               and (storage.foldername(name))[1] = auth.uid()::text
               and public.email_allowed());
--- 2) A user may delete their OWN uploaded file only while no papers row points at it. This is what lets the
---    upload flow roll back a file when the row insert fails, without letting users delete submitted papers.
 drop policy if exists unapproved_owner_cleanup on storage.objects;
 create policy unapproved_owner_cleanup on storage.objects for delete to authenticated
   using (bucket_id = 'unapproved'

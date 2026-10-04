@@ -9,12 +9,10 @@ import type { SemesterValue } from "../lib/autofill";
 
 interface Props {
   paper: AdminPaper;
-  /** pending = not yet approved; approved = already public (edit / unapprove / takedown). */
   mode: "pending" | "approved";
-  onDone: (id: number) => void;          // the card left this list (approved / unapproved / replaced)
-  onDelete: (id: number) => void;        // parent shows the 8 s undo
-  onReplaced: (ids: number[]) => void;   // duplicates that were moved to trash
-  /** Bulk approve (pending list only): a tick box on the card. `reasons` = why it cannot be ticked. */
+  onDone: (id: number) => void;
+  onDelete: (id: number) => void;
+  onReplaced: (ids: number[]) => void;
   bulk?: { ready: boolean; reasons: string[]; checked: boolean; onToggle: () => void };
 }
 
@@ -22,7 +20,6 @@ export default function ReviewCard({ paper, mode, onDone, onDelete, onReplaced, 
   const catalogue = useCatalogue();
   const sems = useCourseSems();
   const [form, setForm] = useState<FormDetails>(() => withCourseSemester(withCourseName(paperToForm(paper), catalogue), sems, catalogue));
-  // The live catalogue may arrive after the first render: fill a still-blank name / semester then (never overwrites typing).
   useEffect(() => { setForm((f) => withCourseSemester(withCourseName(f, catalogue), sems, catalogue)); }, [catalogue, sems]);
   const [url, setUrl] = useState<string | null>(null);
   const [showPdf, setShowPdf] = useState(false);
@@ -32,7 +29,6 @@ export default function ReviewCard({ paper, mode, onDone, onDelete, onReplaced, 
   const [problems, setProblems] = useState<string[]>([]);
   const set = (c: Partial<FormDetails>) => { setForm((f) => ({ ...f, ...c })); setProblems([]); };
 
-  // Look for probable duplicates whenever code / year / exam / semester change (debounced).
   const code = normCode(form.course_code);
   const year = Number(form.year);
   useEffect(() => {

@@ -1,12 +1,9 @@
-# Minimal config; run `supabase init` locally to regenerate a full one if needed.
 project_id = "campus-qps"
 [db]
 major_version = 15
 
-# Webhook-called function authenticates with a shared secret, not a user JWT
 [functions.notify-upload]
 verify_jwt = false
 
-# Scheduled (GitHub Actions cron) caller authenticates with the same shared secret
 [functions.daily-digest]
 verify_jwt = false

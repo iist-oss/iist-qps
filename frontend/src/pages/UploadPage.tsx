@@ -21,7 +21,6 @@ interface Item {
   status: Status;
   error: string | null;
   form: FormDetails;
-  /** Shown when status is "done" (published at once, or waiting for review). */
   doneMsg?: string;
 }
 
@@ -32,7 +31,6 @@ const autofillOpts = {
 
 export default function UploadPage() {
   const { user, loading, signIn, isAdmin } = useAuth();
-  // B1: an admin's own uploads go live at once when complete (on by default).
   const [publishNow, setPublishNow] = useState(true);
   const [items, setItems] = useState<Item[]>([]);
   const [busy, setBusy] = useState(false);
@@ -40,18 +38,14 @@ export default function UploadPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef<Item[]>([]);
   itemsRef.current = items;
-  // Static list first, then the live catalogue from the database (it grows as papers are approved).
   const catalogue = useCatalogue();
   const catalogueRef = useRef(catalogue);
   catalogueRef.current = catalogue;
   const sems = useCourseSems();
   const semsRef = useRef(sems);
   semsRef.current = sems;
-  /** Course name from the catalogue, for a blank name only. */
   const nameFromCatalogue = (f: FormDetails) => withCourseName(f, catalogueRef.current);
-  /** Name AND odd/even from the catalogue. Only used AFTER the paper's own text was read, so the paper wins. */
   const fromCatalogue = (f: FormDetails) => withCourseSemester(withCourseName(f, catalogueRef.current), semsRef.current, catalogueRef.current);
-  // OCR runs one file at a time so a phone is not overloaded.
   const ocrChain = useRef<Promise<void>>(Promise.resolve());
 
   function patch(key: string, change: Partial<Item>) {
@@ -122,7 +116,7 @@ export default function UploadPage() {
 
   function onPick(e: ChangeEvent<HTMLInputElement>) {
     addFiles(Array.from(e.target.files ?? []));
-    e.target.value = ""; // allow picking the same file again
+    e.target.value = "";
   }
   function onDrop(e: DragEvent<HTMLDivElement>) {
     e.preventDefault();
@@ -141,7 +135,6 @@ export default function UploadPage() {
     let okCount = 0;
     let publishedCount = 0;
     let failCount = 0;
-    // Snapshot of what is ready now; each file is handled on its own and a failure never stops the rest.
     for (const it of itemsRef.current.filter((i) => i.status === "ready")) {
       const checked = validateForm(it.form, nowYear);
       if (!checked.ok) {

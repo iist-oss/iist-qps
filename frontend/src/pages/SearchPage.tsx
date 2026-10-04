@@ -34,8 +34,7 @@ export default function SearchPage() {
     }
   }
 
-  // Run once on load if the link carries a query
-  useEffect(() => { void run(query, exams); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { void run(query, exams); }, []);
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();

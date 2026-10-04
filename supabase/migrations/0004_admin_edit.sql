@@ -1,6 +1,3 @@
--- 0004: transactional admin edit (metadata + approval + replace) for the approve-paper
--- Edge Function. File moves happen in the function; DB changes happen here atomically.
--- STATUS: UNTESTED
 create or replace function public.admin_apply_edit(
   p_id bigint, p_course_code text, p_course_name text, p_year integer,
   p_exam text, p_semester text, p_note text, p_approve boolean,

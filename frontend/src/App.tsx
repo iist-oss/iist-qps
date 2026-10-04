@@ -10,6 +10,8 @@ import StatusPage from "./pages/StatusPage";
 import AboutPage from "./pages/AboutPage";
 import CreditsPage from "./pages/CreditsPage";
 import TakedownPage from "./pages/TakedownPage";
+import BrowsePage from "./pages/BrowsePage";
+import MyUploadsPage from "./pages/MyUploadsPage";
 import { configIssues, isConfigured } from "./lib/supabase";
 import { university } from "./config/university";
 
@@ -38,6 +40,8 @@ export default function App() {
             <Route path="/takedown" element={<TakedownPage />} />
             <Route path="/status" element={<StatusPage />} />
             <Route path="/upload" element={<UploadPage />} />
+            <Route path="/browse" element={<BrowsePage />} />
+            <Route path="/my-uploads" element={<MyUploadsPage />} />
             <Route path="/admin/*" element={<AdminPage />} />
             <Route path="*" element={<SearchPage />} />
           </Routes>

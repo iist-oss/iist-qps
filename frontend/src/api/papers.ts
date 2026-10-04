@@ -18,7 +18,6 @@ export async function getStats(): Promise<{ totalPapers: number; totalCourses: n
   return { totalPapers: Number(row.total_papers), totalCourses: Number(row.total_courses) };
 }
 
-/** Public URL for files in the `approved` bucket. (Unapproved files need signed URLs – B5.) */
 export function publicFileUrl(filePath: string): string {
   const i = filePath.indexOf("/");
   const bucket = filePath.slice(0, i);

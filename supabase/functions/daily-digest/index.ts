@@ -1,8 +1,3 @@
-// Daily digest: ONE email to every admin when papers are waiting for review (nothing is sent when the queue is empty).
-// Called once a day by .github/workflows/digest.yml (POST + header `x-webhook-secret`, same value as WEBHOOK_SECRET).
-// verify_jwt is off for this function (supabase/config.toml); the shared secret is the lock.
-// Needs the same secrets as notify-upload: SMTP_USER, SMTP_PASS (+ optional SMTP_HOST/PORT/FROM), SITE_URL.
-// A missing SMTP setup answers 500 on purpose, so the scheduled run turns red instead of failing silently.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { fail, ok, preflight } from "../_shared/cors.ts";
 import { digestBody, digestSubject } from "../_shared/digest.ts";

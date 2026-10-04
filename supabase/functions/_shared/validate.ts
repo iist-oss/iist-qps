@@ -1,5 +1,5 @@
-export const SEMESTERS = ["", "odd", "even"] as const; // D12
-const COURSE_CODE_RE = /^[A-Z]{2,4}\d{3,5}[A-Z]?$/;         // D7/D25: MA111C style (keep in sync with frontend config)
+export const SEMESTERS = ["", "odd", "even"] as const;
+const COURSE_CODE_RE = /^[A-Z]{2,4}\d{3,5}[A-Z]?$/;
 
 export interface PaperDetails {
   course_code: string;
@@ -17,7 +17,6 @@ export type ValidationResult =
   | { ok: true; value: PaperDetails }
   | { ok: false; errors: string[] };
 
-/** requireComplete = true when approving: every field must be filled in properly. */
 export function validateDetails(d: PaperDetails, requireComplete: boolean): ValidationResult {
   const errors: string[] = [];
   const course_code = normalizeCourseCode(d.course_code ?? "");
@@ -45,7 +44,6 @@ export function validateDetails(d: PaperDetails, requireComplete: boolean): Vali
   return errors.length ? { ok: false, errors } : { ok: true, value: { course_code, course_name, year, exam, semester, note } };
 }
 
-/** Path sanitiser: ASCII alphanumerics/underscore, words joined by '-'. */
 export function sanitizePath(s: string): string {
   return s.replaceAll("/", "-").replaceAll("-", " ").split(/\s+/).filter(Boolean)
     .map((p) => p.replace(/[^A-Za-z0-9_]/g, "")).filter(Boolean).join("-");
@@ -56,11 +54,9 @@ export function approvedFileName(id: number, d: PaperDetails): string {
   return `${base.slice(0, 150)}.pdf`;
 }
 
-/** file_path convention: "<bucket>/<path inside bucket>" (D4). */
 export function splitSlug(slug: string): { bucket: string; path: string } {
   const i = slug.indexOf("/");
   return i < 0 ? { bucket: "", path: slug } : { bucket: slug.slice(0, i), path: slug.slice(i + 1) };
 }
 
-/** Where a trashed upload's file is parked so it stops being publicly reachable. */
 export const trashPath = (id: number) => `trash/${id}.pdf`;

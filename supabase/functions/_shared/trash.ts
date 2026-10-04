@@ -2,18 +2,10 @@ import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { splitSlug, trashPath } from "./validate.ts";
 
 export interface Parked {
-  /** new "<bucket>/<path>" to store in papers.file_path */
   filePath: string;
-  /** best-effort move back, used if the DB update that should follow fails */
   undo: () => Promise<void>;
 }
 
-/**
- * Uploaded papers sitting in the PUBLIC `approved` bucket stay downloadable by direct URL even after the
- * row is trashed. Move such a file into the private `unapproved` bucket first.
- * Returns null when nothing needs to move (library papers by design, or file already private).
- * Throws on a failed move so the caller can report it and leave the row untouched.
- */
 export async function parkPublicFile(
   db: SupabaseClient, id: number, filePath: string, fromLibrary: boolean,
 ): Promise<Parked | null> {

@@ -1,9 +1,7 @@
-// Pure helpers (no React/Supabase imports) so they can be unit-tested in plain Node.
 import type { ExamFilter, Paper } from "../types";
 
 export const ALL_EXAM_FILTERS: ExamFilter[] = ["midsem", "endsem", "ct", "lab", "assignment"];
 
-/** Parses `?exam=midsem,ct`. Missing param -> all; unknown values dropped. */
 export function parseExamFilter(raw: string | null): ExamFilter[] {
   if (raw === null) return [...ALL_EXAM_FILTERS];
   return raw.split(",").map((s) => s.trim())
@@ -22,7 +20,7 @@ export function examTag(exam: string): string {
   if (exam === "endsem") return "END";
   if (exam === "lab") return "LAB";
   if (exam === "assignment") return "ASSIGN";
-  return exam.toUpperCase(); // ct, ct1, ct2 ...
+  return exam.toUpperCase();
 }
 export function examTooltip(exam: string): string {
   if (exam === "") return "Unknown exam";
@@ -44,12 +42,12 @@ export function availableYears(results: Paper[]): number[] {
   return [...new Set(results.map((r) => r.year))].sort((a, b) => b - a);
 }
 
-/** Sorting by year while filtered to one year falls back to course name. */
 export function filterAndSort(
   results: Paper[],
-  opts: { year: number | null; sortBy: SortBy; order: SortOrder },
+  opts: { year: number | null; sortBy: SortBy; order: SortOrder; semester?: "all" | "odd" | "even" },
 ): Paper[] {
   let out = opts.year === null ? results.slice() : results.filter((r) => r.year === opts.year);
+  if (opts.semester && opts.semester !== "all") out = out.filter((r) => r.semester === opts.semester);
   if (opts.sortBy === "relevance") return out;
 
   const fallback = opts.sortBy === "year" && opts.year !== null;

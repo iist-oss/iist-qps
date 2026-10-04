@@ -15,12 +15,10 @@ async function probe(label: string, path: string, init?: RequestInit): Promise<s
     const body = (await res.text()).replace(/\s+/g, " ").slice(0, 220);
     return `${label}: HTTP ${res.status}  ${body}`;
   } catch (e) {
-    // "TypeError: Failed to fetch" = blocked / offline / DNS / CORS, not a Supabase answer
     return `${label}: NO ANSWER (${e instanceof Error ? e.message : String(e)})`;
   }
 }
 
-/** Connection check page at /#/status. Shows what the live build is really doing. Never prints the full key. */
 export default function StatusPage() {
   const info = describeKey(key);
   const problems = keyProblems(url, info);

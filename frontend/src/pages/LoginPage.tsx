@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../auth/AuthContext";
 import { university } from "../config/university";
-const OTP_LENGTH = 6; // must match Supabase Auth -> Email -> OTP length
+const OTP_LENGTH = 6;
 const RESEND_SECONDS = 30;
 
 export default function LoginPage() {
@@ -16,7 +16,6 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
 
-  // Already signed in (or just finished): leave the login page.
   useEffect(() => { if (user) navigate("/", { replace: true }); }, [user, navigate]);
 
   useEffect(() => {

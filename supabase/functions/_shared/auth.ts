@@ -3,11 +3,9 @@ import { fail } from "./cors.ts";
 
 export interface AdminCtx {
   user: User;
-  /** service-role client: bypasses RLS. Only use AFTER the admin check passed. */
   db: SupabaseClient;
 }
 
-/** Verifies the caller's JWT and that they are listed in public.admins. */
 export async function requireAdmin(req: Request): Promise<AdminCtx | Response> {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) return fail("Authorization header missing.", 401);

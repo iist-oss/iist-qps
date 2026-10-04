@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { FaSignInAlt, FaSignOutAlt } from "react-icons/fa";
+import { FaMoon, FaSignInAlt, FaSignOutAlt, FaSun } from "react-icons/fa";
 import { useAuth } from "../auth/AuthContext";
 import { university } from "../config/university";
 import { countPending } from "../api/admin";
+import { applyTheme, getTheme, saveTheme, type Theme } from "../lib/theme";
 
 export default function Header() {
   const { user, isAdmin, loading, signIn, signOut } = useAuth();
   const [pending, setPending] = useState(0);
+  const [theme, setTheme] = useState<Theme>(getTheme());
+  useEffect(() => { applyTheme(theme); }, [theme]);
+  const toggleTheme = () => { const next: Theme = theme === "dark" ? "light" : "dark"; saveTheme(next); setTheme(next); };
   useEffect(() => {
     if (!isAdmin) { setPending(0); return; }
     let alive = true;
@@ -24,7 +28,12 @@ export default function Header() {
       </NavLink>
       <nav>
         <NavLink to="/">Search</NavLink>
+        <NavLink to="/browse">Browse</NavLink>
         <NavLink to="/upload">Upload</NavLink>
+        {user && <NavLink to="/my-uploads">My uploads</NavLink>}
+        <button className="link-btn" onClick={toggleTheme} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} title={theme === "dark" ? "Light mode" : "Dark mode"}>
+          {theme === "dark" ? <FaSun /> : <FaMoon />}
+        </button>
         {isAdmin && <NavLink to="/admin">Admin{pending > 0 && <span className="badge" title="Papers waiting for review">{pending}</span>}</NavLink>}
         {!loading && (user ? (
           <button className="link-btn" onClick={signOut} title={user.email ?? ""}>

@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { FaFilePdf, FaLink } from "react-icons/fa";
+import { FaFilePdf, FaFlag, FaLink } from "react-icons/fa";
 import { publicFileUrl } from "../api/papers";
 import {
   availableYears, examTag, examTooltip, filterAndSort, paperTitle, semesterTag, semesterTooltip,
   type SortBy, type SortOrder,
 } from "../lib/papers";
+import { university } from "../config/university";
 import type { Paper } from "../types";
 
 async function copyLink(url: string) {
@@ -19,6 +20,8 @@ async function copyLink(url: string) {
 
 function ResultCard({ paper }: { paper: Paper }) {
   const url = publicFileUrl(paper.file_path);
+  const reportHref = `mailto:${university.contact.email}?subject=${encodeURIComponent(`Report paper #${paper.id}`)}`
+    + `&body=${encodeURIComponent(`Paper: ${paperTitle(paper)} ${paper.year}\nLink: ${url}\n\nWhat is wrong (wrong details, names or roll numbers visible, copyright, other): `)}`;
   return (
     <div className="result-card">
       <div className="result-info">
@@ -33,6 +36,7 @@ function ResultCard({ paper }: { paper: Paper }) {
       <div className="result-btns">
         <a className="icon-btn" href={url} target="_blank" rel="noopener noreferrer" title="Open PDF" aria-label={`Open PDF: ${paperTitle(paper)} ${paper.year}`}><FaFilePdf /></a>
         <button className="icon-btn" onClick={() => copyLink(url)} title="Copy link to PDF" aria-label="Copy link to PDF"><FaLink /></button>
+        <a className="icon-btn" href={reportHref} title="Report a problem with this paper" aria-label="Report a problem with this paper"><FaFlag /></a>
       </div>
     </div>
   );
@@ -42,9 +46,10 @@ export default function SearchResults({ results }: { results: Paper[] }) {
   const [year, setYear] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>("relevance");
   const [order, setOrder] = useState<SortOrder>("descending");
+  const [semester, setSemester] = useState<"all" | "odd" | "even">("all");
 
   const years = useMemo(() => availableYears(results), [results]);
-  const shown = useMemo(() => filterAndSort(results, { year, sortBy, order }), [results, year, sortBy, order]);
+  const shown = useMemo(() => filterAndSort(results, { year, sortBy, order, semester }), [results, year, sortBy, order, semester]);
 
   return (
     <div className="results">
@@ -52,6 +57,11 @@ export default function SearchResults({ results }: { results: Paper[] }) {
         <select aria-label="Filter by year" value={year ?? "all"} onChange={(e) => setYear(e.target.value === "all" ? null : Number(e.target.value))}>
           <option value="all">All years</option>
           {years.map((y) => <option key={y} value={y}>{y}</option>)}
+        </select>
+        <select aria-label="Filter by semester" value={semester} onChange={(e) => setSemester(e.target.value as "all" | "odd" | "even")}>
+          <option value="all">All semesters</option>
+          <option value="odd">Odd semester</option>
+          <option value="even">Even semester</option>
         </select>
         <select aria-label="Sort by" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
           <option value="relevance">Sort by relevance</option>

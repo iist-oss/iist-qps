@@ -5,11 +5,6 @@ const BUCKET = "unapproved";
 
 export type UploadResult = { ok: true; id: number | null } | { ok: false; error: string };
 
-/**
- * 1) put the PDF in unapproved/<uid>/<uuid>.pdf   2) insert the papers row.
- * If step 2 fails the file is removed again (allowed by policy unapproved_owner_cleanup),
- * so a failure never leaves an orphan behind. One file per call: callers never abort a batch.
- */
 export async function uploadPaper(file: File, uid: string, d: UploadDetails, wantId = false): Promise<UploadResult> {
   const uuid = crypto.randomUUID();
   const objectPath = objectPathFor(uid, uuid);
@@ -22,7 +17,6 @@ export async function uploadPaper(file: File, uid: string, d: UploadDetails, wan
     return { ok: false, error: friendlyUploadError(up.error.message) };
   }
 
-  // Only ask for the new id when the caller needs it (admin auto-approve): a plain insert is the proven path.
   const row = {
     course_code: d.course_code,
     course_name: d.course_name,

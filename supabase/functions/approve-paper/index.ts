@@ -1,7 +1,3 @@
-// POST /functions/v1/approve-paper   (admin only)
-// Body: { id, course_code?, course_name?, year?, exam?, semester?, note?, approve_status?, replace?: number[] }
-// Edits metadata, moves the PDF between buckets as needed, and applies the DB change atomically.
-// If the DB step fails after a file move, the move is reverted (best effort).
 import { fail, ok, preflight } from "../_shared/cors.ts";
 import { requireAdmin } from "../_shared/auth.ts";
 import { approvedFileName, splitSlug, validateDetails } from "../_shared/validate.ts";
@@ -15,7 +11,6 @@ Deno.serve(async (req) => {
   if (ctx instanceof Response) return ctx;
   const { user, db } = ctx;
 
-  // deno-lint-ignore no-explicit-any
   let body: any;
   try { body = await req.json(); } catch { return fail("Invalid JSON body."); }
 
@@ -44,7 +39,6 @@ Deno.serve(async (req) => {
     ? body.replace.map(Number).filter((n: number) => Number.isInteger(n) && n > 0 && n !== id)
     : [];
 
-  // Decide where the file should live. Library papers never move.
   const from = splitSlug(cur.file_path);
   let to = from;
   if (!cur.from_library) {
@@ -78,8 +72,6 @@ Deno.serve(async (req) => {
     return fail("Could not save the changes.", 500);
   }
 
-  // Replaced duplicates are now in the trash: stop serving their files publicly (best effort; the
-  // DB change above is already committed and the rows are hidden from search either way).
   if (replace.length > 0) {
     const { data: gone } = await db.from("papers").select("id, file_path, from_library").in("id", replace);
     for (const r of gone ?? []) {

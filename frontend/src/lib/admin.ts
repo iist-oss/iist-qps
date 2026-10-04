@@ -1,11 +1,9 @@
-// Pure admin helpers (no React/Supabase imports; unit-tested under Node). See B5.
 import type { FormDetails } from "./upload";
 import type { SemesterValue } from "./autofill";
 
-/** A papers row as the admin dashboard sees it. */
 export interface AdminPaper {
   id: number;
-  file_path: string; // "<bucket>/<path>"
+  file_path: string;
   from_library: boolean;
   course_code: string;
   course_name: string;
@@ -18,10 +16,14 @@ export interface AdminPaper {
   is_deleted: boolean;
 }
 
-/** Seconds the admin has to undo a delete (the delete is only sent after this). */
 export const UNDO_MS = 8000;
 
-// Pure libs do not import each other at runtime (plain-Node tests), so these two repeat lib/upload.ts and validate.ts. Keep in sync (D25, D26).
+export function chunk<T>(items: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+}
+
 const CODE_RE = /^[A-Z]{2,4}\d{3,5}[A-Z]?$/;
 const EXAM_RE = /^(midsem|endsem|lab|assignment|ct\d*)$/;
 
@@ -31,7 +33,6 @@ export function paperToForm(p: Pick<AdminPaper, "course_code" | "course_name" | 
   return { course_code: p.course_code, course_name: p.course_name, year: String(p.year), exam: p.exam, semester: p.semester, note: p.note };
 }
 
-/** Everything that blocks approving (mirrors validateDetails(requireComplete) in the approve-paper function). Empty = OK. */
 export function approveProblems(f: FormDetails, nowYear: number): string[] {
   const out: string[] = [];
   const name = f.course_name.trim();
@@ -45,7 +46,6 @@ export function approveProblems(f: FormDetails, nowYear: number): string[] {
   return out;
 }
 
-/** Request body fields for approve-paper / edit (the caller adds id, approve_status, replace). */
 export function formToFields(f: FormDetails) {
   return {
     course_code: normCode(f.course_code),
@@ -57,13 +57,8 @@ export function formToFields(f: FormDetails) {
   };
 }
 
-/** Both notes filled in and different ("Exercise 1" vs "Exercise 2", "Slot A" vs "Slot B"): two different papers. */
 const notesDiffer = (a: string, b: string) => a.trim() !== "" && b.trim() !== "" && a.trim().toLowerCase() !== b.trim().toLowerCase();
 
-/**
- * Papers that are probably the same paper as `target`: same course code, year and exam; semester equal or either unknown.
- * `others` should already exclude trash; `target` itself is skipped.
- */
 export function findSimilar(
   target: Pick<AdminPaper, "id" | "course_code" | "year" | "exam" | "semester"> & { note?: string },
   others: AdminPaper[],
@@ -77,11 +72,6 @@ export function findSimilar(
     !notesDiffer(o.note, target.note ?? ""));
 }
 
-/**
- * Everything that stops a paper from being bulk-approved (B2): the normal approve checks plus "looks like a duplicate".
- * `form` is the paper's saved details with the catalogue name/semester already filled in; `others` = papers with the
- * same course code that are not in the trash (pending ones included, so two look-alikes block each other).
- */
 export function bulkProblems(paper: Pick<AdminPaper, "id">, form: FormDetails, others: AdminPaper[], nowYear: number): string[] {
   const out = approveProblems(form, nowYear);
   const dupes = findSimilar(
@@ -91,7 +81,6 @@ export function bulkProblems(paper: Pick<AdminPaper, "id">, form: FormDetails, o
   return out;
 }
 
-/** "2 days ago"-style label for the review list. */
 export function ageLabel(iso: string, now: Date = new Date()): string {
   const ms = now.getTime() - new Date(iso).getTime();
   if (!Number.isFinite(ms) || ms < 0) return "just now";

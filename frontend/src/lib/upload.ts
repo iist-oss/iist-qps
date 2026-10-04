@@ -1,7 +1,5 @@
-// Pure helpers for the upload page (no React/Supabase imports; unit-tested under Node).
 import type { Detected, SemesterValue } from "./autofill";
 
-/** What the user edits (all strings, as typed). */
 export interface FormDetails {
   course_code: string;
   course_name: string;
@@ -11,7 +9,6 @@ export interface FormDetails {
   note: string;
 }
 
-/** What gets saved (validated). */
 export interface UploadDetails {
   course_code: string;
   course_name: string;
@@ -40,7 +37,7 @@ export const SEMESTER_OPTIONS: Array<{ value: SemesterValue; label: string }> = 
   { value: "even", label: "Even semester" },
 ];
 
-const CODE_RE = /^[A-Z]{2,4}\d{3,5}[A-Z]?$/; // keep in sync with supabase/functions/_shared/validate.ts
+const CODE_RE = /^[A-Z]{2,4}\d{3,5}[A-Z]?$/;
 const EXAM_RE = /^(midsem|endsem|lab|assignment|ct\d*)$/;
 
 export const emptyForm = (): FormDetails =>
@@ -51,7 +48,6 @@ export function toForm(d: Detected): FormDetails {
     exam: d.exam, semester: d.semester, note: d.note };
 }
 
-/** Fill only the fields the user (or an earlier step) left blank. */
 export function fillBlanks(form: FormDetails, d: Detected): FormDetails {
   return {
     ...form,
@@ -80,7 +76,6 @@ export function validateForm(f: FormDetails, nowYear: number): FormResult {
   return { ok: true, value: { course_code, course_name, year, exam: f.exam, semester: f.semester, note } };
 }
 
-/** Quick checks before reading the file. Returns an error message or null. */
 export function checkFileBasic(f: { name: string; size: number; type: string }, maxMiB: number): string | null {
   const looksPdf = f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf");
   if (!looksPdf) return "Only PDF files are allowed.";
@@ -89,7 +84,6 @@ export function checkFileBasic(f: { name: string; size: number; type: string }, 
   return null;
 }
 
-/** Real PDFs contain "%PDF-" near the start. */
 export function hasPdfMagic(bytes: Uint8Array): boolean {
   const limit = Math.min(bytes.length, 1024) - 4;
   for (let i = 0; i < limit; i++) {
@@ -98,9 +92,7 @@ export function hasPdfMagic(bytes: Uint8Array): boolean {
   return false;
 }
 
-/** Object path inside the `unapproved` bucket. RLS requires the first folder to be the user's id. */
 export const objectPathFor = (uid: string, uuid: string) => `${uid}/${uuid}.pdf`;
-/** papers.file_path value ("<bucket>/<path>", D4). */
 export const filePathFor = (uid: string, uuid: string) => `unapproved/${objectPathFor(uid, uuid)}`;
 
 export function friendlyUploadError(msg: string): string {
