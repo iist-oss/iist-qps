@@ -106,3 +106,8 @@
 - **Fix:** rls.test.sql sets that flag before the two delete assertions; tools/local-db-test/stub.sql now mirrors the guard trigger so the failure reproduces locally (confirmed fail before, 15/15 after).
 - **Now verified on real Supabase stack (via CI):** migrations apply, RLS/policy/cap/domain/path tests. Still unverified: deno test (blocked by the delete-paper type error, fixed in session 9), Edge Function runtime behaviour, storage.move across buckets, real Google login.
 - **Next step:** push, confirm all 3 workflows green, then user applies migrations to the production project.
+
+### Session 10 – 2026-10-04 – Production DB applied; deploy workflows
+- **Did:** User ran migrations on production: success. Added deploy-pages.yml, deploy-functions.yml (supabase functions deploy --use-api; skips if no token), keepalive.yml.
+- **UNTESTED:** all three new workflows; Pages must be enabled (Settings > Pages > Source: GitHub Actions) by an org admin.
+- **Needs from user (in order):** GitHub secrets VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, SUPABASE_ACCESS_TOKEN; Pages source; Google OAuth (USER_ACTIONS 11-13); sign in once; admin SQL (USER_ACTIONS 9).

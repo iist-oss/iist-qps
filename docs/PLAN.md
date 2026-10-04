@@ -52,8 +52,9 @@ the latest CI result, if any, and fixing failures first.
 - [ ] Route guard (UI only; real security is RLS)
 
 ### B6 Deploy
-- [ ] `deploy-pages.yml` (build + publish), `ci.yml` (typecheck, lint, build)
-- [ ] `keepalive.yml` cron (prevents free-tier pause)
+- [~] `deploy-pages.yml` (build + publish), `ci.yml` = existing frontend-ci/db-tests/functions-check
+- [~] `deploy-functions.yml` (needs secret SUPABASE_ACCESS_TOKEN; skips cleanly without it)
+- [~] `keepalive.yml` cron (prevents free-tier pause)
 - [ ] 404.html / base-path checks
 
 ### B7 Import tools (default: generic)
