@@ -174,3 +174,17 @@
 - **UNTESTED:** SearchPage/UploadPage rendering (CI builds), deno test addition, migration on real Supabase (CI), the 100 MiB path end to end (browser memory use of pdf.js/tesseract on very large scans unknown).
 - **Caveat:** Supabase project-wide upload limit (Free = 50 MB) caps the effective size until changed/upgraded (USER_ACTIONS 20).
 - **Next step:** user pushes, runs 0007 in SQL editor; PDF split (Q9) when the file is attached; then B5 admin.
+
+### Session 20 – 2026-10-05 – B5 admin dashboard
+- **Decision with user:** do NOT build automatic bundle splitting at upload now; split the user's own 21-paper PDF with a script instead (still waiting for the PDF to be attached), admin dashboard first.
+- **Did:** `lib/admin.ts` (+`tests/admin.test.mts`, 6 tests), `api/admin.ts` (list, counts, signed URLs, approve-paper / delete-paper wrappers with readable errors), `components/ReviewCard.tsx`, `pages/AdminPage.tsx` (Review queue / Approved / Trash), header badge, styles. D27, PLAN B5 items.
+- **Verified here:** 49 node tests pass; `tsc --strict` on the pure lib files. No React type-check possible here (npm registry blocked), so ReviewCard / AdminPage / Header / api/admin are **UNTESTED**; CI builds them. Likeliest CI failures: a typing nit in `api/admin.ts` (`functions.invoke` body type) or `react-hot-toast` custom toast typing.
+- **Needs from user (not confirmed in any log):** Edge Functions deployed (`approve-paper`, `delete-paper`, `notify-upload`; needs SUPABASE_ACCESS_TOKEN secret), and the user's account added to `admins` (USER_ACTIONS 7-9). Without these the dashboard shows "Admins only" or errors on approve/delete.
+- **Next step:** push, read CI; user approves one real test upload end to end; then split the PDF (Q9) and run Q8 (redaction) review in the dashboard.
+
+### Session 21 – 2026-10-05 – 50 MiB limit; SQL as .txt
+- **Did:** user asked for 50 (Free plan max). Migration 0008, `maxFileMiB` 50, tests/pgTAP/docs updated, D28. SQL for the SQL editor delivered as `supabase-run-0007-0008.txt` (phone cannot open .sql).
+- **Verified here:** 49 node tests pass; all 8 migrations + 38 pgTAP assertions pass on local Postgres 16.
+
+### Session 22 – 2026-10-05 – 47 MiB limit
+- **Did:** user chose to lower the limit (D29). Migration 0009, `maxFileMiB` 47, tests/pgTAP/docs updated; SQL file now `docs/supabase-run-0007-0009.txt`.

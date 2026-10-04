@@ -93,3 +93,13 @@ button:not(.link-btn):not(.icon-btn) {
 .ok-text { color: #7fd99a; }
 
 .status-box { background: $panel; border: 1px solid $border; border-radius: 8px; padding: 0.75rem; white-space: pre-wrap; word-break: break-word; font-size: 0.85rem; margin: 1rem 0; }
+
+// Admin dashboard (B5)
+.badge { display: inline-block; margin-left: 0.35rem; min-width: 1.3rem; padding: 0 0.4rem; border-radius: 999px; background: $accent; color: #fff; font-size: 0.75rem; text-align: center; }
+.tabs { display: flex; gap: 1rem; margin: 0.75rem 0 1rem; border-bottom: 1px solid $border;
+  a { color: $muted; text-decoration: none; padding: 0.4rem 0; &.active { color: $text; border-bottom: 2px solid $accent; } } }
+.review-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.5rem 0; }
+.pdf-frame { margin: 0.5rem 0; iframe { width: 100%; height: 70vh; border: 1px solid $border; border-radius: 8px; background: #fff; } }
+.similar-box { margin-top: 0.75rem; padding: 0.6rem 0.75rem; border: 1px solid #7a6a30; border-radius: 8px; background: rgba(255, 212, 138, 0.06); p { margin: 0.25rem 0 0.5rem; }
+  .similar-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.3rem; } }
+button.danger { border-color: #7a3030; color: #ff8a8a; &:hover:not(:disabled) { border-color: #ff8a8a; } }

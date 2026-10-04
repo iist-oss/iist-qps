@@ -17,5 +17,5 @@ export const university = {
   } as Record<string, "odd" | "even">,
 
   maxUploadFiles: 10,
-  maxFileMiB: 100, // keep <= bucket limit (migration 0007) and the Supabase project-wide upload limit
+  maxFileMiB: 47, // = bucket limit (migration 0009); stays under a 50,000,000-byte Supabase Free project cap
 };

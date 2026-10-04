@@ -35,6 +35,6 @@ After this, just say "continue" – the AI reads CLAUDE.md and picks up from AI_
 17. Make sure `notify-upload` is deployed (needs the SUPABASE_ACCESS_TOKEN GitHub secret).
 18. Database -> Webhooks -> create: table `papers`, event Insert, type Supabase Edge Functions -> `notify-upload`, POST, header `x-webhook-secret` = the same value as step 16.
 
-## Session 19 – lab/assignment types and 100 MiB (D26)
-19. Run `supabase/migrations/0007_lab_assignment_100mib.sql` in the Supabase SQL editor (production; CI only tests it).
-20. Supabase Dashboard -> Storage -> Settings -> "Upload file size limit": set to 100 MB. The Free plan allows at most 50 MB there; a paid plan is needed for the full 100 MiB. Until then the effective limit is 50 MB.
+## Session 19-21 – lab/assignment types and 47 MiB (D26, D29)
+19. Run the SQL in `supabase-run-0007-0009.txt` (same as migrations 0007 + 0008 + 0009) in the Supabase SQL editor (production; CI only tests it). Safe to run twice.
+20. Supabase Dashboard -> Storage -> Settings -> "Upload file size limit": make sure it is 50 MB (the Free plan maximum; our files are capped at 47 MiB).

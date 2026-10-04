@@ -75,3 +75,13 @@ Reference material from the user (Semester 1 course list + 42 scanned 2024 paper
 
 ## D26 – Lab and assignment types; 100 MiB per file (2026-10-05, session 19, user decision)
 New `exam` values `lab` and `assignment` (migration 0007 replaces the CHECK; kept in sync in `lib/upload.ts`, `validate.ts`, `types.ts`, `lib/papers.ts`, SearchPage filter labels). Search shows them as extra filter checkboxes (default: all on). Autofill only falls back to them when no real exam wording is found ("Lab", "Laboratory", "Practical", "AutoCAD" -> lab; "Assignment" -> assignment), so a midsem header that mentions "Laboratory" stays midsem. Per-file limit is 100 MiB: bucket `file_size_limit` set in 0007 and `university.maxFileMiB`. The Supabase project-wide "Upload file size limit" (Dashboard -> Storage -> Settings) also applies and the smaller wins; the Free plan caps it at 50 MB, so a paid plan is needed for real 100 MiB uploads.
+
+## D27 – Admin dashboard design (2026-10-05, session 20)
+Three tabs: Review queue (pending), Approved, Trash. Admins read `papers` directly (policy `papers_admin_all`) and open PDFs through signed URLs (`storage_admin_all`); all writes go through the `approve-paper` / `delete-paper` Edge Functions (D13), never straight to the tables. "Save only" saves details without approving (lenient validation); "Approve" needs code, name, year, exam and semester (`approveProblems` mirrors the function's strict check, so the admin sees all problems at once). Duplicate detection = same normalised code + year + exam, semester equal or unknown; ticking a duplicate sends it in `replace` so it is trashed in the same transaction as the approval. Delete is sent after an 8 s undo window and is not cancelled by leaving the page; closing the tab inside the window means nothing is deleted. Pending count in the header refreshes on a `qps:papers-changed` window event.
+Deliberately NOT built: bundle splitting at upload (recommendation agreed with the user, session 19+); revisit as manual page-marking if students upload bundles.
+
+## D28 – Per-file limit is 50 MiB, not 100 (2026-10-05, session 21, user decision)
+Supersedes the 100 MiB part of D26 (the Free plan caps the project-wide upload limit at 50 MB, so 100 MiB could never work). Migration 0008 sets both buckets to 52428800 bytes; `maxFileMiB` = 50. 0007 is unchanged because it may already be applied. If a PDF still fails right at the limit, the project cap may be 50,000,000 bytes rather than 50 MiB: lower `maxFileMiB` to 47 and the bucket limit accordingly.
+
+## D29 – Per-file limit is 47 MiB (2026-10-05, session 22, user decision)
+Supersedes D28. 47 MiB = 49,283,072 bytes stays under 50,000,000 in case Supabase counts "50 MB" in decimal. Migration 0009; `maxFileMiB` = 47.

@@ -46,16 +46,18 @@ the latest CI result, if any, and fixing failures first.
 - [ ] Optional: Cloudflare Turnstile captcha to stop scripted code-request floods
 
 ### B4 Upload + OCR
-- [~] Drag/drop + "Choose PDF files" button, per-file status (never abort batch), 100 MiB (0007) + PDF checks (extension/type, size, `%PDF-` header)  (session 14)
+- [~] Drag/drop + "Choose PDF files" button, per-file status (never abort batch), 47 MiB (0009) + PDF checks (extension/type, size, `%PDF-` header)  (session 14)
 - [~] Autofill: filename first, then first-page text (pdf.js) or OCR (tesseract.js) for scans; config regex; Autumn/Monsoon -> odd, Spring -> even (D12)  [pure logic tested: 23 node tests pass; browser OCR UNTESTED]
 - [~] Details edited inline on each file card (no modal, so the old hooks-in-`if` bug cannot occur) (D23)
 - [~] Upload = Storage upload to `unapproved/<uid>/<uuid>.pdf`, then insert row; storage object removed if the insert fails
 - [ ] Real-world test on production: upload a text PDF and a scanned PDF; check the admin email arrives (notify-upload)
 
-### B5 Admin
-- [ ] Review queue, edit+approve modal, similar-paper detection (query by course/year/sem/exam), replace option
-- [ ] Soft delete with 8 s undo, trash page with hard delete
-- [ ] Route guard (UI only; real security is RLS)
+### B5 Admin (session 20)
+- [~] Review queue (oldest first) with PDF preview via signed URL (iframe + "open in new tab"), edit form, Approve / Save only, via `approve-paper`
+- [~] Similar-paper detection (same course code + year + exam, semester equal or unknown) with "replace" tick boxes
+- [~] Approved tab (edit, unapprove, delete = takedown), Trash tab (restore, permanent delete with confirm)
+- [~] Soft delete with 8 s undo (delete is sent after the delay), pending-count badge in the header, UI route guard
+  [pure logic `lib/admin.ts` tested: 6 node tests; React pages UNTESTED until CI builds and an admin uses them on production]
 
 ### B6 Deploy
 - [~] `deploy-pages.yml` (build + publish), `ci.yml` = existing frontend-ci/db-tests/functions-check
