@@ -7,7 +7,7 @@ import UploadPage from "./pages/UploadPage";
 import AdminPage from "./pages/AdminPage";
 import LoginPage from "./pages/LoginPage";
 import StatusPage from "./pages/StatusPage";
-import { isConfigured } from "./lib/supabase";
+import { configIssues, isConfigured } from "./lib/supabase";
 import { university } from "./config/university";
 
 export default function App() {
@@ -18,6 +18,11 @@ export default function App() {
         {!isConfigured && (
           <div className="banner">
             Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (see frontend/.env.example).
+          </div>
+        )}
+        {isConfigured && configIssues.length > 0 && (
+          <div className="banner" role="alert">
+            Site configuration problem: {configIssues[0]} See <a href="#/status">connection check</a>.
           </div>
         )}
         <main>

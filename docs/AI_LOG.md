@@ -146,3 +146,10 @@
 - **UNTESTED:** StatusPage.tsx, App.tsx route, SCSS (no npm/vite here; CI will build).
 - **Next step:** user pushes, opens https://iist-oss.github.io/iist-qps/#/status, taps "Run checks", sends a screenshot; fix per result. Then B5 admin.
 - **Blockers:** the outage cause.
+
+### Session 16 – 2026-10-05 – Outage fixed + config guard
+- **Cause found via /status:** `VITE_SUPABASE_URL` secret was `https://mebfxiizwzzsjuuqftoy` (no `.supabase.co`). User corrected the secret and redeployed; /status now shows health 200, settings 200, get_stats 200 (0 papers).
+- **Did:** D24 guard: `configProblems` in `lib/diagnose.ts` (+test), build-time check in `vite.config.ts`, banner in `App.tsx` via `configIssues` in `lib/supabase.ts`.
+- **Verified here:** 28 node tests pass; `tsc --strict` on diagnose.ts. **UNTESTED:** vite.config.ts check, banner (CI builds them; CI uses a valid placeholder URL so it must stay green; if red, read the "Bad Supabase configuration" message).
+- **Still unconfirmed:** real sign-in email delivery after the fix (user to try; else use /status "Send test code").
+- **Next step:** B5 admin dashboard.

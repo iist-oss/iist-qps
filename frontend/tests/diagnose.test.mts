@@ -30,3 +30,9 @@ test("keyProblems flags mismatch, service_role, missing", () => {
   assert.ok(keyProblems(undefined, describeKey(undefined)).length >= 2);
   assert.deepEqual(keyProblems(url, describeKey("sb_publishable_abc")), []);
 });
+import { configProblems } from "../src/lib/diagnose.ts";
+test("configProblems catches the missing .supabase.co host", () => {
+  const k = jwt({ role: "anon", ref: "mebfxiizwzzsjuuqftoy" });
+  assert.match(configProblems("https://mebfxiizwzzsjuuqftoy", k)[0], /does not look like/);
+  assert.deepEqual(configProblems("https://mebfxiizwzzsjuuqftoy.supabase.co", k), []);
+});

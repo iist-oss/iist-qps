@@ -48,3 +48,7 @@ export function keyProblems(url: string | undefined, info: KeyInfo): string[] {
   if (info.kind === "jwt" && info.role && info.role !== "anon" && info.role !== "service_role") out.push(`Unexpected key role "${info.role}".`);
   return out;
 }
+
+/** URL + key problems straight from the raw env values (used by the banner and the build check). */
+export const configProblems = (url: string | undefined, key: string | undefined): string[] =>
+  keyProblems(url, describeKey(key));
