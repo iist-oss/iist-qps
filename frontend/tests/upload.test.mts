@@ -48,3 +48,9 @@ test("friendlyUploadError", () => {
   assert.match(friendlyUploadError("TypeError: Failed to fetch"), /Network/);
   assert.match(friendlyUploadError("???"), /Upload failed/);
 });
+
+test("validateForm accepts IIST codes with a letter suffix", () => {
+  for (const c of ["MA111C", "ch112h", "AA131V", "AE131", "CS10001"]) assert.ok(validateForm({ ...good, course_code: c }, 2026).ok, c);
+  assert.ok(!validateForm({ ...good, course_code: "MA111CD" }, 2026).ok);
+  assert.ok(!validateForm({ ...good, course_code: "M111C" }, 2026).ok);
+});

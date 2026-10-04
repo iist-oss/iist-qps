@@ -19,7 +19,8 @@ export interface AutofillOptions {
 
 export const EMPTY_DETECTED: Detected = { course_code: "", year: null, exam: "", semester: "", note: "" };
 
-const FINAL_CODE_RE = /^[A-Z]{2,4}\d{3,5}$/;
+// IIST codes: 2-4 letters, 3-5 digits, optional 1-letter suffix (MA111C, CH112H, AA131V). Keep in sync with config + validate.ts
+const FINAL_CODE_RE = /^([A-Z]{2,4})(\d{3,5})([A-Z]?)$/;
 // Words that look like a course-code prefix ("Page 12 of 2023") but are not.
 const CODE_STOPWORDS = new Set([
   "YEAR", "DATE", "DATED", "PAGE", "PAGES", "TIME", "MARK", "MARKS", "ROLL", "NO", "OF", "IN", "ON", "TO",
@@ -36,8 +37,9 @@ export function findCourseCode(text: string, pattern: RegExp): string {
   for (const m of text.matchAll(re)) {
     const norm = normalizeCode(m[0]);
     if (!FINAL_CODE_RE.test(norm)) continue;
-    const letters = /^[A-Z]+/.exec(norm)![0];
-    const digits = norm.slice(letters.length);
+    const parts = FINAL_CODE_RE.exec(norm)!;
+    const letters = parts[1];
+    const digits = parts[2];
     if (CODE_STOPWORDS.has(letters)) continue;
     if (digits.length === 4 && /^(19|20)\d\d$/.test(digits)) continue; // that is a year
     return norm;
@@ -53,13 +55,17 @@ export function findYear(text: string, maxYear: number): number | null {
   return null;
 }
 
+const ROMAN: Record<string, number> = { I: 1, II: 2, III: 3, IV: 4, V: 5, VI: 6, VII: 7, VIII: 8 };
 const EXAM_PATTERNS: Array<[RegExp, (m: RegExpExecArray) => string]> = [
-  [/\bmid[\s_-]*sem(?:ester)?\b/i, () => "midsem"],
-  [/\bmid[\s_-]*term\b/i, () => "midsem"],
-  [/\bend[\s_-]*sem(?:ester)?\b/i, () => "endsem"],
-  [/\bfinal[\s_-]*exam(?:ination)?\b/i, () => "endsem"],
-  [/\bclass[\s_-]*test(?:[\s_-]*(?:no\.?\s*)?(\d))?/i, (m) => "ct" + (m[1] ?? "")],
-  [/\bct[\s_-]?(\d)\b/i, (m) => "ct" + m[1]],
+  [/\bmid[\s_\u2013\u2014-]*sem(?:ester)?\b/i, () => "midsem"],
+  [/\bmid[\s_\u2013\u2014-]*term\b/i, () => "midsem"],
+  [/\bend[\s_\u2013\u2014-]*sem(?:ester)?\b/i, () => "endsem"],
+  [/\bend[\s_\u2013\u2014-]*term(?:inal)?\b/i, () => "endsem"],
+  [/\bfinal[\s_\u2013\u2014-]*exam(?:ination)?\b/i, () => "endsem"],
+  [/\bclass[\s_\u2013\u2014-]*test(?:[\s_\u2013\u2014-]*(?:no\.?\s*)?(\d))?/i, (m) => "ct" + (m[1] ?? "")],
+  [/\bct[\s_\u2013\u2014-]?(\d)\b/i, (m) => "ct" + m[1]],
+  // "Test I", "TEST-II", "Test 2" (a numbered test = class test N)
+  [/\btest[\s_\u2013\u2014-]*(?:no\.?\s*)?(IV|V|III|II|I|[1-9])\b/i, (m) => "ct" + (ROMAN[m[1].toUpperCase()] ?? m[1])],
 ];
 
 export function findExam(text: string): string {
@@ -90,6 +96,28 @@ export function findSemester(text: string, aliases: Record<string, "odd" | "even
   return bare ? (aliases[bare[1].toLowerCase()] ?? "") : "";
 }
 
+/**
+ * "B.Tech - I Semester", "1st Semester", "Semester 5": semester 1,3,5,7 = odd, 2,4,6,8 = even (D12).
+ * Roman numerals must be written in capitals so ordinary words ("i semester") do not count.
+ */
+export function findSemesterByNumber(text: string): SemesterValue {
+  const tok = "(VIII|VII|VI|IV|V|III|II|I|[1-8])";
+  const sem = "(?:semester|sem)(?![a-z])";
+  const forms = [
+    new RegExp(`(?<![A-Za-z0-9])${tok}(?:st|nd|rd|th)?[\\s.\\u2013\\u2014-]*${sem}`, "gi"),
+    new RegExp(`(?<![A-Za-z])${sem}[\\s:.\\u2013\\u2014-]*${tok}(?![A-Za-z0-9])`, "gi"),
+  ];
+  for (const re of forms) {
+    for (const m of text.matchAll(re)) {
+      const t = m[1];
+      if (/^[A-Za-z]+$/.test(t) && t !== t.toUpperCase()) continue; // "i semester" is not a numeral
+      const n = ROMAN[t.toUpperCase()] ?? Number(t);
+      if (n >= 1 && n <= 8) return n % 2 === 1 ? "odd" : "even";
+    }
+  }
+  return "";
+}
+
 export function findNote(text: string): string {
   const parts: string[] = [];
   const slot = /\b[Ss]lot[\s:_-]*([A-Z])\b/.exec(text);
@@ -108,7 +136,7 @@ export function extractDetails(text: string, opts: AutofillOptions): Detected {
     course_code: findCourseCode(text, opts.courseCodePattern),
     year: findYear(text, maxYear),
     exam: findExam(text),
-    semester: findSemester(text, opts.semesterAliases),
+    semester: findSemester(text, opts.semesterAliases) || findSemesterByNumber(text),
     note: findNote(text),
   };
 }

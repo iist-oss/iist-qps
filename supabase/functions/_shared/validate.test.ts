@@ -34,3 +34,8 @@ Deno.test("splitSlug", () => {
 Deno.test("trashPath", () => {
   assertEquals(trashPath(5), "trash/5.pdf");
 });
+Deno.test("IIST course codes with a letter suffix are valid", () => {
+  assertEquals(validateDetails({ ...good, course_code: "ma 111c" }, true).ok, true);
+  assertEquals(validateDetails({ ...good, course_code: "CH112H" }, true).ok, true);
+  assertEquals(validateDetails({ ...good, course_code: "MA111CD" }, true).ok, false);
+});

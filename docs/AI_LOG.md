@@ -153,3 +153,11 @@
 - **Verified here:** 28 node tests pass; `tsc --strict` on diagnose.ts. **UNTESTED:** vite.config.ts check, banner (CI builds them; CI uses a valid placeholder URL so it must stay green; if red, read the "Bad Supabase configuration" message).
 - **Still unconfirmed:** real sign-in email delivery after the fix (user to try; else use /status "Send test code").
 - **Next step:** B5 admin dashboard.
+
+### Session 17 – 2026-10-05 – Real IIST papers as reference: course codes, catalogue, autofill
+- **Input:** `PYQP_2024_Sem_1.pdf` (21.5 MB, 42 scanned pages = 21 papers, Sem 1 2024: MA111/MA111C, PH112C, CH112H, AV111C, ES111H, AE131/AV131 lab) + the Semester 1 course list.
+- **Found (probe on real headers, before the fix):** autofill returned NO course code for MA111C/CH112H/PH112C and missed "End Terminal", "Test I", "I Semester"; `validateForm` rejected "MA111C" (blocking: students could not upload any suffixed code). Also: the file is > 10 MiB and is a bundle, so the upload page cannot take it as is.
+- **Did:** D25. Code pattern with optional suffix in 4 synced places; `config/courses.ts` + `lib/courses.ts` (name pre-fill, wired into UploadPage at filename and PDF stages); autofill: end-term, Test I..V, dash separators, semester-by-number; placeholders/messages say MA111C. Open questions Q3 answered, Q7-Q9 added.
+- **Verified here:** 40 node tests pass (28 + 12 new, using transcribed real headers); `tsc --strict` on all lib files + config/courses.ts; edge-function `validate.ts` assertions run under Node (Deno not available: `validate.test.ts` additions UNTESTED under deno).
+- **UNTESTED:** UploadPage.tsx wiring (no tsc/vite here; CI builds it). Real OCR quality on these tilted phone-camera scans is unknown (tests use transcribed text, not OCR output). Nothing deployed yet.
+- **Next step:** user pushes; decide Q7-Q9; then B5 admin (needs PDF preview before approve for the privacy case).

@@ -51,6 +51,9 @@ slot/supplementary note), admin dashboard (approve queue, similar-paper detectio
 replace option, 8s undo-delete), trash page. Course list lives in a JSON map code->name.
 University course codes may differ -> regexes must be made configurable (see Q3).
 
+## IIST specifics (D25)
+Course codes: 2 letters + 3 digits + optional letter (MA111C). Catalogue: `frontend/src/config/courses.ts`. B.Tech semester 1 = odd (Jul-Dec).
+
 ## Conventions
 - Migrations: `supabase/migrations/NNNN_name.sql`, idempotent where possible.
 - Never edit an applied migration; add a new one.

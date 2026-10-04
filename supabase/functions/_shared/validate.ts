@@ -1,5 +1,5 @@
 export const SEMESTERS = ["", "odd", "even"] as const; // D12
-const COURSE_CODE_RE = /^[A-Z]{2,4}\d{3,5}$/;            // D7 (keep in sync with frontend config)
+const COURSE_CODE_RE = /^[A-Z]{2,4}\d{3,5}[A-Z]?$/;         // D7/D25: MA111C style (keep in sync with frontend config)
 
 export interface PaperDetails {
   course_code: string;

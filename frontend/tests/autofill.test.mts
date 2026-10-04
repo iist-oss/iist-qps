@@ -2,10 +2,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   extractDetails, detailsFromFilename, mergeDetected, findCourseCode, findExam, findSemester, findYear, findNote,
+  findSemesterByNumber,
 } from "../src/lib/autofill.ts";
 
 const opts = {
-  courseCodePattern: /[A-Za-z]{2,4}\s?-?\d{3,5}/,
+  courseCodePattern: /[A-Za-z]{2,4}\s?-?\d{3,5}[A-Za-z]?/,
   semesterAliases: { odd: "odd", autumn: "odd", monsoon: "odd", even: "even", spring: "even" } as Record<string, "odd" | "even">,
   maxYear: 2027,
 };
@@ -53,4 +54,60 @@ test("filename parsing and merge", () => {
   const m = mergeDetected(f, t);
   assert.equal(m.year, 2022);      // filename wins
   assert.equal(m.semester, "even"); // text fills the blank
+});
+
+// ---- Real IIST papers (headers transcribed from the Semester 1 2024 scans) ----
+const iist = (h: string) => extractDetails(h, opts);
+const base = "INDIAN INSTITUTE OF SPACE SCIENCE AND TECHNOLOGY THIRUVANANTHAPURAM 695 547";
+
+test("IIST course codes with a letter suffix", () => {
+  assert.equal(findCourseCode("MA111C - Calculus", opts.courseCodePattern), "MA111C");
+  assert.equal(findCourseCode("Mechanics and Electromagnetism (PH112C) Mid-Term", opts.courseCodePattern), "PH112C");
+  assert.equal(findCourseCode("CH112H ENVIRONMENTAL SCIENCE", opts.courseCodePattern), "CH112H");
+  assert.equal(findCourseCode("ES111H: Introduction to Space Science", opts.courseCodePattern), "ES111H");
+  assert.equal(findCourseCode("AV 111 Basic Electrical Engineering", opts.courseCodePattern), "AV111");
+  assert.equal(findCourseCode("AE131/AV131: Basic Engg. Lab", opts.courseCodePattern), "AE131");
+  assert.equal(findCourseCode("ma111c_midsem_2024", opts.courseCodePattern), "MA111C");
+  assert.equal(findCourseCode("MA111and more", opts.courseCodePattern), ""); // letters glued to a word are not a suffix
+  assert.equal(findCourseCode("Sep 2024 and Page 12", opts.courseCodePattern), "");
+});
+test("IIST header: MA111C mid term", () => {
+  assert.deepEqual(iist(`${base} Mid Term Examination - September 2024 B.Tech - I Semester MA111C - Calculus Date: 23/09/2024 Time: 2 hours Max. Marks: 35`),
+    { course_code: "MA111C", year: 2024, exam: "midsem", semester: "odd", note: "" });
+});
+test("IIST header: Test I (numbered test = ct1)", () => {
+  const d = iist(`${base} Test I - September 2024 B.Tech - I Semester MA111 - Calculus Date: 05/09/2024`);
+  assert.equal(d.exam, "ct1"); assert.equal(d.course_code, "MA111"); assert.equal(d.semester, "odd"); assert.equal(d.year, 2024);
+  assert.equal(findExam("BASIC ELECTRICAL ENGINEERING TEST\u2013I Date :September 09, 2024"), "ct1");
+  assert.equal(findExam("Test II"), "ct2");
+  assert.equal(findExam("Class test in Physics 20 Sep' 2024"), "ct");
+  assert.equal(findExam("this test is hard"), "");
+});
+test("IIST header: AV111 End Terminal Examination, 1st semester", () => {
+  const d = iist(`${base} B Tech (ECE and Engineering Physics) 1st semester End Terminal Examination AV 111 Basic Electrical Engineering Date: 09. 12. 2024`);
+  assert.deepEqual(d, { course_code: "AV111", year: 2024, exam: "endsem", semester: "odd", note: "" });
+});
+test("IIST header: CH112H mid semester and end semester", () => {
+  assert.deepEqual(iist("CH112H ENVIRONMENTAL SCIENCE AND ENGINEERING MID SEMESTER EXAMINATION September 28, 2024"),
+    { course_code: "CH112H", year: 2024, exam: "midsem", semester: "", note: "" });
+  const e = iist("CH112H ENVIRONMENTAL SCIENCE AND ENGINEERING END SEMESTER EXAMINATION B. Tech. I Semester (ECE Branch) December 11, 2024");
+  assert.equal(e.exam, "endsem"); assert.equal(e.semester, "odd");
+});
+test("IIST header: ES111H end sem / PH112C mid-term", () => {
+  const e = iist("DEPARTMENT OF EARTH AND SPACE SCIENCES End Semester Examination B.Tech (ECE) 1st Semester Course: ES111H: Introduction to Space Science Max. Marks: 80");
+  assert.deepEqual(e, { course_code: "ES111H", year: null, exam: "endsem", semester: "odd", note: "" });
+  const p = iist("Tech(I Year) Mechanics and Electromagnetism (PH112C) Mid-Term Sep' 2024 Duration:2 Hrs Full Marks: 30");
+  assert.equal(p.course_code, "PH112C"); assert.equal(p.exam, "midsem"); assert.equal(p.year, 2024);
+});
+test("semester from the semester number", () => {
+  assert.equal(findSemesterByNumber("B.Tech - I Semester"), "odd");
+  assert.equal(findSemesterByNumber("B.Tech - II Semester"), "even");
+  assert.equal(findSemesterByNumber("ECE/Avionics \u20131st Semester"), "odd");
+  assert.equal(findSemesterByNumber("4th Sem exam"), "even");
+  assert.equal(findSemesterByNumber("Semester 5"), "odd");
+  assert.equal(findSemesterByNumber("Semester - VIII"), "even");
+  assert.equal(findSemesterByNumber("End Semester Examination"), "");
+  assert.equal(findSemesterByNumber("Semester 2024"), "");
+  assert.equal(findSemesterByNumber("i semester"), ""); // lower-case "i" is a word, not a numeral
+  assert.equal(findSemesterByNumber("Mid Sem"), "");
 });

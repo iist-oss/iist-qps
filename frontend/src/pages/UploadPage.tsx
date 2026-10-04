@@ -3,6 +3,8 @@ import toast from "react-hot-toast";
 import { useAuth } from "../auth/AuthContext";
 import { university } from "../config/university";
 import { uploadPaper } from "../api/upload";
+import { courseCatalogue } from "../config/courses";
+import { withCourseName } from "../lib/courses";
 import { readFirstPageText } from "../lib/ocr";
 import { detailsFromFilename, extractDetails, mergeDetected } from "../lib/autofill";
 import {
@@ -60,7 +62,7 @@ export default function UploadPage() {
       }
       const detected = extractDetails(text, autofillOpts);
       setItems((prev) => prev.map((it) =>
-        it.key === key ? { ...it, status: "ready", error: note, form: fillBlanks(it.form, detected) } : it));
+        it.key === key ? { ...it, status: "ready", error: note, form: withCourseName(fillBlanks(it.form, detected), courseCatalogue) } : it));
     } catch (e) {
       console.error("read file", e);
       patch(key, { status: "ready", error: "Could not read this file. Please fill in the details." });
@@ -82,12 +84,12 @@ export default function UploadPage() {
       const problem = checkFileBasic(file, university.maxFileMiB);
       const key = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
       if (problem) {
-        added.push({ key, file, status: "rejected", error: problem, form: toForm(detailsFromFilename(file.name, autofillOpts)) });
+        added.push({ key, file, status: "rejected", error: problem, form: withCourseName(toForm(detailsFromFilename(file.name, autofillOpts)), courseCatalogue) });
         continue;
       }
       if (room <= 0) { skippedLimit++; continue; }
       room--;
-      added.push({ key, file, status: "reading", error: null, form: toForm(detailsFromFilename(file.name, autofillOpts)) });
+      added.push({ key, file, status: "reading", error: null, form: withCourseName(toForm(detailsFromFilename(file.name, autofillOpts)), courseCatalogue) });
     }
 
     if (skippedLimit > 0) toast.error(`You can add up to ${university.maxUploadFiles} files at a time. ${skippedLimit} not added.`);
@@ -218,7 +220,7 @@ function ItemCard(props: {
       {editable && (
         <div className="upload-fields">
           <label htmlFor={id("code")}>Course code</label>
-          <input id={id("code")} value={form.course_code} placeholder="e.g. MA101" autoCapitalize="characters"
+          <input id={id("code")} value={form.course_code} placeholder="e.g. MA111C" autoCapitalize="characters"
             onChange={(e) => onChange(key, { course_code: e.target.value })} />
 
           <label htmlFor={id("name")}>Course name (optional)</label>

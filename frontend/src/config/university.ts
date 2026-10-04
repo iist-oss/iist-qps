@@ -6,8 +6,9 @@ export const university = {
    *  app_settings.allowed_email_domain (comma-separated) + the sign-up trigger from migration 0005 + email_domain_ok (0006). Keep in sync. */
   allowedEmailDomains: ["iist.ac.in", "ug.iist.ac.in"] as string[],
 
-  /** Used by upload autofill in B4. Keep in sync with supabase/functions/_shared/validate.ts */
-  courseCodePattern: /[A-Za-z]{2,4}\s?-?\d{3,5}/,
+  /** IIST codes look like MA111C / CH112H / AA131V (answers Q3). Used by upload autofill; keep in sync with
+   *  supabase/functions/_shared/validate.ts, lib/upload.ts and lib/autofill.ts */
+  courseCodePattern: /[A-Za-z]{2,4}\s?-?\d{3,5}[A-Za-z]?/,
 
   /** Words found in PDFs/filenames -> stored semester value (D12). Used in B4. */
   semesterAliases: {

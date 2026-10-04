@@ -38,7 +38,7 @@ export const SEMESTER_OPTIONS: Array<{ value: SemesterValue; label: string }> = 
   { value: "even", label: "Even semester" },
 ];
 
-const CODE_RE = /^[A-Z]{2,4}\d{3,5}$/; // keep in sync with supabase/functions/_shared/validate.ts
+const CODE_RE = /^[A-Z]{2,4}\d{3,5}[A-Z]?$/; // keep in sync with supabase/functions/_shared/validate.ts
 const EXAM_RE = /^(midsem|endsem|ct\d*)$/;
 
 export const emptyForm = (): FormDetails =>
@@ -69,7 +69,7 @@ export function validateForm(f: FormDetails, nowYear: number): FormResult {
   const course_name = f.course_name.trim();
   const note = f.note.trim();
   const year = Number(f.year);
-  if (!CODE_RE.test(course_code)) errors.push("Enter a valid course code (for example MA101).");
+  if (!CODE_RE.test(course_code)) errors.push("Enter a valid course code (for example MA111C).");
   if (!Number.isInteger(year) || year < 1950 || year > nowYear + 1) errors.push("Enter a valid year.");
   if (!EXAM_RE.test(f.exam)) errors.push("Choose the exam type.");
   if (course_name.length > 200) errors.push("Course name is too long (max 200 characters).");
