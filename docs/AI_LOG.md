@@ -130,3 +130,11 @@
 - **UNTESTED:** whole function (no Deno here): `deno check` of the denomailer import, SMTP over 465 from Supabase, auth.admin.getUserById. Nothing can trigger it until B4 (upload) exists.
 - **Needs from user:** secrets WEBHOOK_SECRET, SMTP_USER, SMTP_PASS, SITE_URL; deploy functions (SUPABASE_ACCESS_TOKEN); create DB webhook on papers INSERT with header x-webhook-secret.
 - **Next step:** B4 upload + OCR, then B5 admin (pending badge).
+
+### Session 14 – 2026-10-04 – B4 Upload + autofill
+- **Did:** User confirmed 10 files at a time. Built the upload page: `lib/autofill.ts` (course code / year / exam / semester / note detection, stop-word and year filtering), `lib/upload.ts` (form model, validation, file checks, `%PDF-` check, paths matching the RLS rule, friendly errors), `lib/ocr.ts` (pdf.js text, tesseract.js for scans, lazy-loaded), `api/upload.ts` (storage upload then row insert, removes the file if the insert fails), `pages/UploadPage.tsx` (drop zone + file picker, per-file cards with editable details, sequential OCR, per-file results), styles, deps `pdfjs-dist@4.10.38` + `tesseract.js@^5.1.1`, vite target es2022. Tests: `autofill.test.mts`, `upload.test.mts`.
+- **Verified here:** 23 node tests pass (6 papers + 4 email + 13 new); `tsc --strict` passes on `autofill.ts` and `upload.ts`.
+- **UNTESTED:** UploadPage.tsx, ocr.ts, api/upload.ts (no npm/network here: no tsc on React code, no vite build, no browser). Likeliest first-CI failures: pdfjs-dist import path/typing (`legacy/build/pdf.mjs`, worker `?url`), top-level-await build error (target already es2022), tesseract.js types. Runtime: real PDFs, scanned PDFs, tesseract model download, first real notify-upload email.
+- **Not covered:** two users uploading the same PDF (file_hash stays null for uploads; admin similar-paper check comes in B5). Storage uploads are not covered by the daily cap (known limitation from session 7).
+- **Next step:** push, read CI; user tests an upload on production; then B5 admin (review queue, approve with signed-URL preview, pending badge in header, trash).
+- **Blockers:** none.

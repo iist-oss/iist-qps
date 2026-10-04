@@ -46,10 +46,11 @@ the latest CI result, if any, and fixing failures first.
 - [ ] Optional: Cloudflare Turnstile captcha to stop scripted code-request floods
 
 ### B4 Upload + OCR
-- [ ] Drag/drop, per-file status (never abort batch), 10 MiB + PDF checks client-side
-- [ ] OCR autofill (pdf.js + tesseract.js) using config regex; filename parsing first; map Autumn/Spring/Monsoon words to odd/even (D12)
-- [ ] Edit-details modal (fix the hooks-in-`if` bug from original)
-- [ ] Upload = Storage upload to `unapproved/<uid>/<uuid>.pdf`, then insert row; rollback storage object if insert fails
+- [~] Drag/drop + "Choose PDF files" button, per-file status (never abort batch), 10 MiB + PDF checks (extension/type, size, `%PDF-` header)  (session 14)
+- [~] Autofill: filename first, then first-page text (pdf.js) or OCR (tesseract.js) for scans; config regex; Autumn/Monsoon -> odd, Spring -> even (D12)  [pure logic tested: 23 node tests pass; browser OCR UNTESTED]
+- [~] Details edited inline on each file card (no modal, so the old hooks-in-`if` bug cannot occur) (D23)
+- [~] Upload = Storage upload to `unapproved/<uid>/<uuid>.pdf`, then insert row; storage object removed if the insert fails
+- [ ] Real-world test on production: upload a text PDF and a scanned PDF; check the admin email arrives (notify-upload)
 
 ### B5 Admin
 - [ ] Review queue, edit+approve modal, similar-paper detection (query by course/year/sem/exam), replace option

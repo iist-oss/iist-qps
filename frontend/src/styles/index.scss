@@ -65,3 +65,29 @@ button:not(.link-btn):not(.icon-btn) {
 }
 .form-error { color: #ff8a8a; margin: 0; }
 .site-header nav .signin-link { display: inline-flex; gap: 0.35rem; align-items: center; color: $accent; }
+
+.dropzone {
+  border: 2px dashed $border; border-radius: 12px; padding: 1.5rem 1rem; text-align: center; margin: 1.25rem 0;
+  p { margin: 0 0 0.75rem; color: $muted; }
+  &.dragging { border-color: $accent; background: rgba(79, 140, 255, 0.08); }
+}
+.upload-card {
+  background: $panel; border: 1px solid $border; border-radius: 10px; padding: 0.85rem 1rem; margin-bottom: 0.75rem;
+  &.status-done { opacity: 0.75; }
+  &.status-rejected { border-color: #7a3030; }
+  p { margin: 0.4rem 0; }
+}
+.upload-card-head { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
+  .file-name { flex: 1 1 10rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+.upload-fields {
+  display: grid; grid-template-columns: 1fr; gap: 0.35rem; margin-top: 0.5rem;
+  label { color: $muted; font-size: 0.85rem; margin-top: 0.35rem; }
+  input, select { padding: 0.6rem 0.7rem; border-radius: 8px; border: 1px solid $border; background: $bg; color: $text; font-size: 1rem; }
+}
+@media (min-width: 640px) {
+  .upload-fields { grid-template-columns: 10rem 1fr; align-items: center; label { margin-top: 0; } }
+}
+.upload-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
+.muted { color: $muted; }
+.ok-text { color: #7fd99a; }

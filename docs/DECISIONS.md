@@ -63,3 +63,6 @@ IIST mail is Zimbra, not Google, so Google OAuth is dropped. Flow: `/login` page
 
 ## D22 – Admin notification = email from notify-upload (2026-10-04, session 13)
 User skipped Slack and wants admins emailed. notify-upload now sends via Gmail SMTP (app password, port 465 because Supabase blocks 25/587) using denomailer; recipients = all rows in `admins` (emails read via auth admin API). Burst guard: skip if another unapproved paper was uploaded in the last 10 min. Slack kept as optional. A header badge with the pending count is still planned for B5.
+
+## D23 – Upload page: inline editing, lazy OCR, required fields (2026-10-04, session 14)
+Details are edited inline on each file's card, not in a modal. Required to upload: valid course code, year, exam. Course name, semester and note are optional (the admin completes name/semester when approving, D13 rules). Autofill order: filename, then PDF text of page 1 (pdf.js), then OCR (tesseract.js) only if the page has almost no text. Both libraries are lazy-loaded (dynamic import) so search stays light; pdf.js uses the `legacy` build for older Android WebViews and vite `build.target` is es2022. Tesseract downloads its English model from a CDN at runtime. OCR runs one file at a time. User may upload up to 10 files at once (config `maxUploadFiles`).
