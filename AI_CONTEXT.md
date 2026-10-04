@@ -21,7 +21,7 @@ Built on a serverless stack (no custom server).
 Table `papers`: id, course_code, course_name, year, exam ('' | midsem | endsem | lab | assignment | ct | ctN),
 semester ('' | odd | even), note, file_path, from_library, file_hash, uploaded_by,
 upload_timestamp, approve_status, approved_by, is_deleted, fts (generated tsvector).
-Table `admins`: user_id. Table `app_settings` (daily_upload_cap, allowed_email_domain).
+Table `courses` (code, name, source; migration 0010, public read, admin write, filled by an approval trigger). Table `admins`: user_id. Table `app_settings` (daily_upload_cap, allowed_email_domain).
 Edge Functions: approve-paper, delete-paper, notify-upload (contract: docs/EDGE_FUNCTIONS.md). file_path = "<bucket>/<path>".
 Functions: `is_admin()`, `email_allowed()`, `email_in_allowed_list()`, RPCs `search_papers`, `get_stats`, `email_domain_ok`. Trigger: upload cap.
 Frontend: frontend/ (Vite, HashRouter, email-OTP login (D21), upload page with PDF autofill (D23), config in src/config/university.ts, pure helpers in src/lib/{papers,email,autofill,upload}.ts, `npm test`).

@@ -3,6 +3,7 @@ import { NavLink, Route, Routes } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../auth/AuthContext";
 import ReviewCard from "../components/ReviewCard";
+import CoursesAdmin from "./CoursesAdmin";
 import { deletePapers, listPapers, notifyChanged, signedPdfUrl, type AdminList } from "../api/admin";
 import { ageLabel, UNDO_MS, type AdminPaper } from "../lib/admin";
 
@@ -17,11 +18,13 @@ export default function AdminPage() {
       <nav className="tabs">
         <NavLink to="/admin" end>Review queue</NavLink>
         <NavLink to="/admin/approved">Approved</NavLink>
+        <NavLink to="/admin/courses">Courses</NavLink>
         <NavLink to="/admin/trash">Trash</NavLink>
       </nav>
       <Routes>
         <Route index element={<ReviewList list="pending" />} />
         <Route path="approved" element={<ReviewList list="approved" />} />
+        <Route path="courses" element={<CoursesAdmin />} />
         <Route path="trash" element={<TrashList />} />
       </Routes>
     </div>

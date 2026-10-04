@@ -220,3 +220,9 @@
 ### Session 28 – 2026-10-05 – Build time in hours
 - **Did:** user asked to use time. Device time = 01:02 IST on 2026-10-05. File timestamps in the user's zip run 15:36 to 19:17 UTC on 2026-10-04 = 21:06 to 00:47 IST (consistent with the zip upload at 00:52 IST), i.e. about 3 h 40 min of file activity, about 4 h to now. This also explains the log dates: sessions 15-24 are after midnight IST. So session 27's "two days" was wrong in elapsed time (two calendar dates, one evening). Timeline and summary in `university.credits` rewritten with approximate IST times.
 - **Caveat:** mtimes are not exact (analysis before the first file, waiting on CI/user steps are inside the span). Hence "about".
+
+### Session 29 – 2026-10-05 – Automatic course catalogue
+- **Did:** user asked to automate the catalogue. Migration 0010 (`courses` table, RLS, approval trigger, Semester 1 seed, backfill from approved papers), pgTAP `courses.test.sql` (10 assertions), `lib/courseList.ts` + 4 node tests, `api/courses.ts`, `pages/CoursesAdmin.tsx` (paste list, preview, save, filter, remove), Admin tab, UploadPage merges the DB list over the static one via a ref. D32. SQL for the phone: `docs/supabase-run-0010.txt`.
+- **Verified here:** 58 node tests pass. UNTESTED: the SQL (no Postgres in this session; CI runs the pgTAP), all React code (CI builds). Likeliest CI nits: pgTAP `INSERT ... SELECT ... ORDER BY ... ON CONFLICT` parse, upsert typing in api/courses.ts.
+- **Needs from user:** run `docs/supabase-run-0010.txt` in the Supabase SQL editor BEFORE opening Admin > Courses (else it shows a "relation does not exist" error); push.
+- **Next step:** user pastes the Semester 2+ course list into Admin > Courses.

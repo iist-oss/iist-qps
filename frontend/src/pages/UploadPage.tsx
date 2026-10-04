@@ -1,8 +1,9 @@
-import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "../auth/AuthContext";
 import { university } from "../config/university";
 import { uploadPaper } from "../api/upload";
+import { fetchCatalogue } from "../api/courses";
 import { courseCatalogue } from "../config/courses";
 import { withCourseName } from "../lib/courses";
 import { readFirstPageText } from "../lib/ocr";
@@ -35,6 +36,11 @@ export default function UploadPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef<Item[]>([]);
   itemsRef.current = items;
+  // Static list first, then the live catalogue from the database (it grows as papers are approved).
+  const catalogueRef = useRef<Record<string, string>>(courseCatalogue);
+  useEffect(() => {
+    void fetchCatalogue().then((db) => { catalogueRef.current = { ...courseCatalogue, ...db }; });
+  }, []);
   // OCR runs one file at a time so a phone is not overloaded.
   const ocrChain = useRef<Promise<void>>(Promise.resolve());
 
@@ -62,7 +68,7 @@ export default function UploadPage() {
       }
       const detected = extractDetails(text, autofillOpts);
       setItems((prev) => prev.map((it) =>
-        it.key === key ? { ...it, status: "ready", error: note, form: withCourseName(fillBlanks(it.form, detected), courseCatalogue) } : it));
+        it.key === key ? { ...it, status: "ready", error: note, form: withCourseName(fillBlanks(it.form, detected), catalogueRef.current) } : it));
     } catch (e) {
       console.error("read file", e);
       patch(key, { status: "ready", error: "Could not read this file. Please fill in the details." });
@@ -84,12 +90,12 @@ export default function UploadPage() {
       const problem = checkFileBasic(file, university.maxFileMiB);
       const key = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
       if (problem) {
-        added.push({ key, file, status: "rejected", error: problem, form: withCourseName(toForm(detailsFromFilename(file.name, autofillOpts)), courseCatalogue) });
+        added.push({ key, file, status: "rejected", error: problem, form: withCourseName(toForm(detailsFromFilename(file.name, autofillOpts)), catalogueRef.current) });
         continue;
       }
       if (room <= 0) { skippedLimit++; continue; }
       room--;
-      added.push({ key, file, status: "reading", error: null, form: withCourseName(toForm(detailsFromFilename(file.name, autofillOpts)), courseCatalogue) });
+      added.push({ key, file, status: "reading", error: null, form: withCourseName(toForm(detailsFromFilename(file.name, autofillOpts)), catalogueRef.current) });
     }
 
     if (skippedLimit > 0) toast.error(`You can add up to ${university.maxUploadFiles} files at a time. ${skippedLimit} not added.`);

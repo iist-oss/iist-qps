@@ -69,6 +69,9 @@ the latest CI result, if any, and fixing failures first.
 - [ ] `tools/import/` Node script: manifest (JSON/CSV) + folder of PDFs -> SHA-256 dedupe -> upload -> insert as library papers; dry-run mode
 - [ ] Source-specific scraper only when Q2 is answered
 
+### B7b Course catalogue (session 29)
+- [~] Migration 0010 `courses` + approval trigger + pgTAP `courses.test.sql` (10); `api/courses.ts`, Admin > Courses tab, `lib/courseList.ts` (4 node tests), upload page merges DB list
+
 ### B8 Polish
 - [ ] Mobile pass, a11y pass, [~] privacy/takedown page + About/credits (session 25), `docs/TEST_CHECKLIST.md`, maintainer README
 
