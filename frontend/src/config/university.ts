@@ -2,8 +2,9 @@
 export const university = {
   name: "Campus QPS",
   tagline: "Search for previous year question papers.",
-  /** UI hint only (Google account chooser). Real enforcement: app_settings.allowed_email_domain in the DB. */
-  allowedEmailDomain: "" as string,
+  /** UI hint only (Google account chooser shows Workspace accounts only). Real enforcement is in the DB:
+   *  app_settings.allowed_email_domain (comma-separated) + the sign-up trigger from migration 0005. Keep in sync. */
+  allowedEmailDomains: ["iist.ac.in", "ug.iist.ac.in"] as string[],
 
   /** Used by upload autofill in B4. Keep in sync with supabase/functions/_shared/validate.ts */
   courseCodePattern: /[A-Za-z]{2,4}\s?-?\d{3,5}/,

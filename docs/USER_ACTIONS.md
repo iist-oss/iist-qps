@@ -25,6 +25,6 @@ After this, just say "continue" – the AI reads CLAUDE.md and picks up from AI_
 12. Supabase -> Authentication -> Providers -> Google: paste Client ID + Secret, enable.
 13. Supabase -> Authentication -> URL Configuration:
     Site URL = `https://<you>.github.io/<repo>/`  and add the same + `http://localhost:5173/` to Redirect URLs.
-14. (Optional) restrict to your university: `update public.app_settings set value='university.edu' where key='allowed_email_domain';`
+14. (DONE via migration 0005 + settings, see DECISIONS D20) restrict to your university: `update public.app_settings set value='university.edu' where key='allowed_email_domain';`
     and set `allowedEmailDomain` in `frontend/src/config/university.ts` (adds the Google account-chooser hint).
 15. (SKIP – user tests on production, no local dev) Local dev: `cd frontend && cp .env.example .env.local`, fill in the URL + anon key, `npm install && npm run dev`.

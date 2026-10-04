@@ -48,7 +48,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         provider: "google",
         options: {
           redirectTo: window.location.origin + window.location.pathname,
-          queryParams: university.allowedEmailDomain ? { hd: university.allowedEmailDomain } : undefined,
+          // Google allows only one `hd` value, so with several domains use "*" (= any Workspace account)
+          queryParams: university.allowedEmailDomains.length > 0 ? { hd: "*" } : undefined,
         },
       });
     },

@@ -111,3 +111,9 @@
 - **Did:** User ran migrations on production: success. Added deploy-pages.yml, deploy-functions.yml (supabase functions deploy --use-api; skips if no token), keepalive.yml.
 - **UNTESTED:** all three new workflows; Pages must be enabled (Settings > Pages > Source: GitHub Actions) by an org admin.
 - **Needs from user (in order):** GitHub secrets VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, SUPABASE_ACCESS_TOKEN; Pages source; Google OAuth (USER_ACTIONS 11-13); sign in once; admin SQL (USER_ACTIONS 9).
+
+### Session 11 – 2026-10-04 – University-only login
+- **Did:** Migration 0005 (domain list, extra emails, sign-up trigger on auth.users), pgTAP email_domains.test.sql (9), frontend config `allowedEmailDomains` + `hd=*`, D20. Local run: 29 assertions green (5+9+15).
+- **UNTESTED on real Supabase:** creating a trigger on auth.users from a migration (CI will show), and what the user sees when blocked. Frontend change small, verified only by CI.
+- **Production steps for user:** run 0005 + the settings UPDATE in the SQL editor (file given in chat), then push the repo.
+- **Risk:** if the admin's own Google account is not on an allowed domain they cannot sign up; fallback = set allowed_extra_emails to that address.
