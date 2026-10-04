@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "../auth/AuthContext";
 import { university } from "../config/university";
 import { uploadPaper } from "../api/upload";
-import { fetchCatalogue } from "../api/courses";
-import { courseCatalogue } from "../config/courses";
+import { useCatalogue } from "../lib/useCatalogue";
 import { withCourseName } from "../lib/courses";
 import { readFirstPageText } from "../lib/ocr";
 import { detailsFromFilename, extractDetails, mergeDetected } from "../lib/autofill";
@@ -37,10 +36,9 @@ export default function UploadPage() {
   const itemsRef = useRef<Item[]>([]);
   itemsRef.current = items;
   // Static list first, then the live catalogue from the database (it grows as papers are approved).
-  const catalogueRef = useRef<Record<string, string>>(courseCatalogue);
-  useEffect(() => {
-    void fetchCatalogue().then((db) => { catalogueRef.current = { ...courseCatalogue, ...db }; });
-  }, []);
+  const catalogue = useCatalogue();
+  const catalogueRef = useRef(catalogue);
+  catalogueRef.current = catalogue;
   // OCR runs one file at a time so a phone is not overloaded.
   const ocrChain = useRef<Promise<void>>(Promise.resolve());
 

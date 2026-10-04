@@ -72,6 +72,10 @@ the latest CI result, if any, and fixing failures first.
 ### B7b Course catalogue (session 29)
 - [~] Migration 0010 `courses` + approval trigger + pgTAP `courses.test.sql` (10); `api/courses.ts`, Admin > Courses tab, `lib/courseList.ts` (4 node tests), upload page merges DB list
 
+### B7c Automation (see docs/AUTOMATION_PLAN.md)
+- [ ] Phase A one-push release, B admin time savers, C maintenance, D import tool
+- [~] 0011 settings private (session 30)
+
 ### B8 Polish
 - [ ] Mobile pass, a11y pass, [~] privacy/takedown page + About/credits (session 25), `docs/TEST_CHECKLIST.md`, maintainer README
 

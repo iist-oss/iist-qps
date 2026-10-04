@@ -1,0 +1,68 @@
+-- 0010 (session 29): self-building course catalogue.
+-- code -> name, public read, admin write. Filled automatically when a paper is approved (first name wins,
+-- later admin edits are never overwritten) and by an admin "paste a course list" tool.
+create table if not exists public.courses (
+  code       text primary key check (code ~ '^[A-Z]{2,4}[0-9]{3,5}[A-Z]?$'),
+  name       text not null check (char_length(name) between 1 and 200),
+  source     text not null default 'admin' check (source in ('admin', 'papers', 'seed')),
+  updated_at timestamptz not null default now()
+);
+alter table public.courses enable row level security;
+
+drop policy if exists courses_public_read on public.courses;
+create policy courses_public_read on public.courses for select to anon, authenticated using (true);
+drop policy if exists courses_admin_write on public.courses;
+create policy courses_admin_write on public.courses for all to authenticated
+  using (public.is_admin()) with check (public.is_admin());
+grant select on public.courses to anon, authenticated;
+grant insert, update, delete on public.courses to authenticated;
+
+-- Learn from approved papers. Never blocks an approval: invalid codes / blank names are skipped.
+create or replace function public.learn_course_from_paper()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  c text := upper(regexp_replace(new.course_code, '[\s-]+', '', 'g'));
+  n text := btrim(new.course_name);
+begin
+  if new.approve_status and not new.is_deleted and n <> '' and c ~ '^[A-Z]{2,4}[0-9]{3,5}[A-Z]?$' then
+    insert into public.courses (code, name, source) values (c, left(n, 200), 'papers')
+    on conflict (code) do nothing;
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists papers_learn_course on public.papers;
+create trigger papers_learn_course
+  after insert or update of approve_status, is_deleted, course_code, course_name on public.papers
+  for each row execute function public.learn_course_from_paper();
+
+-- Semester 1 (the list given by the user), then whatever approved papers already teach us.
+insert into public.courses (code, name, source) values
+  ('MA111C', 'Calculus', 'seed'),
+  ('PH112C', 'Mechanics and Electromagnetism', 'seed'),
+  ('AV111C', 'Basic Electrical Engineering', 'seed'),
+  ('ES111H', 'Introduction to Space Science', 'seed'),
+  ('CH112H', 'Environmental Science and Engineering', 'seed'),
+  ('HS111H', 'Communication Skills I', 'seed'),
+  ('AA131V', 'Basic Engineering Lab', 'seed')
+on conflict (code) do nothing;
+
+insert into public.courses (code, name, source)
+select distinct on (code) code, name, 'papers' from (
+  select upper(regexp_replace(course_code, '[\s-]+', '', 'g')) as code,
+         left(btrim(course_name), 200) as name,
+         count(*) as n, max(upload_timestamp) as last
+  from public.papers
+  where approve_status and not is_deleted and btrim(course_name) <> ''
+  group by 1, 2
+) s
+where code ~ '^[A-Z]{2,4}[0-9]{3,5}[A-Z]?$'
+order by code, n desc, last desc
+on conflict (code) do nothing;
+
+-- 0011 (session 30): app_settings was readable by everyone (policy settings_read, 0003), and 0005 added
+-- `allowed_extra_emails` (exact addresses, e.g. a bootstrap admin) to it, so anyone could list those addresses
+-- through the REST API. Nothing in the frontend or the Edge Functions reads this table with an anon/user key
+-- (the functions that need it are SECURITY DEFINER, the Edge Functions use the service role), so admins only.
+drop policy if exists settings_read on public.app_settings;
+-- settings_admin (for all, is_admin()) from 0003 stays.

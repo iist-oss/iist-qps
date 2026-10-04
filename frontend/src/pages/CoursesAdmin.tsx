@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { deleteCourse, listCourses, saveCourses, type CourseEntry } from "../api/courses";
 import { parseCourseList } from "../lib/courseList";
+import { resetCatalogue } from "../lib/useCatalogue";
 
 /** Admin > Courses: paste a course list, check the preview, save. Approving papers also adds courses by itself. */
 export default function CoursesAdmin() {
@@ -23,6 +24,7 @@ export default function CoursesAdmin() {
     const r = await saveCourses(parsed.rows);
     setBusy(false);
     if (!r.ok) { toast.error(r.error); return; }
+    resetCatalogue();
     toast.success(`${r.data} course(s) saved.`);
     setText("");
     void reload();
@@ -32,6 +34,7 @@ export default function CoursesAdmin() {
     if (!window.confirm(`Remove ${code} from the catalogue? Papers are not affected.`)) return;
     const r = await deleteCourse(code);
     if (!r.ok) { toast.error(r.error); return; }
+    resetCatalogue();
     setRows((cur) => (cur ? cur.filter((c) => c.code !== code) : cur));
   }
 

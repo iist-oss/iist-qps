@@ -224,5 +224,10 @@
 ### Session 29 – 2026-10-05 – Automatic course catalogue
 - **Did:** user asked to automate the catalogue. Migration 0010 (`courses` table, RLS, approval trigger, Semester 1 seed, backfill from approved papers), pgTAP `courses.test.sql` (10 assertions), `lib/courseList.ts` + 4 node tests, `api/courses.ts`, `pages/CoursesAdmin.tsx` (paste list, preview, save, filter, remove), Admin tab, UploadPage merges the DB list over the static one via a ref. D32. SQL for the phone: `docs/supabase-run-0010.txt`.
 - **Verified here:** 58 node tests pass. UNTESTED: the SQL (no Postgres in this session; CI runs the pgTAP), all React code (CI builds). Likeliest CI nits: pgTAP `INSERT ... SELECT ... ORDER BY ... ON CONFLICT` parse, upsert typing in api/courses.ts.
-- **Needs from user:** run `docs/supabase-run-0010.txt` in the Supabase SQL editor BEFORE opening Admin > Courses (else it shows a "relation does not exist" error); push.
+- **Needs from user:** run `docs/supabase-run-0010.txt` (superseded in session 30 by `supabase-run-0010-0011.txt`) in the Supabase SQL editor BEFORE opening Admin > Courses (else it shows a "relation does not exist" error); push.
 - **Next step:** user pastes the Semester 2+ course list into Admin > Courses.
+
+### Session 30 – 2026-10-05 – Full review + automation plan
+- **Did:** read all Edge Functions, migrations, workflows, auth, search, upload, admin code. Wrote `docs/AUTOMATION_PLAN.md` (findings + phases A-D). Fixed two things: migration 0011 (app_settings was world-readable, exposing `allowed_extra_emails`) + pgTAP `settings_private.test.sql` (4); admin ReviewCard now uses the live catalogue via new `lib/useCatalogue.ts` (shared with UploadPage; CoursesAdmin resets it after saving).
+- **Verified here:** 58 node tests pass. UNTESTED: 0011 + its test (no Postgres here; CI runs pgTAP), the React edits (CI builds).
+- **Needs from user:** run `docs/supabase-run-0010-0011.txt` in the SQL editor (replaces the 0010-only file), push. Then choose which phase to start (recommended: A).

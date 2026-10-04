@@ -38,3 +38,6 @@ After this, just say "continue" – the AI reads CLAUDE.md and picks up from AI_
 ## Session 19-21 – lab/assignment types and 47 MiB (D26, D29)
 19. Run the SQL in `supabase-run-0007-0009.txt` (same as migrations 0007 + 0008 + 0009) in the Supabase SQL editor (production; CI only tests it). Safe to run twice.
 20. Supabase Dashboard -> Storage -> Settings -> "Upload file size limit": make sure it is 50 MB (the Free plan maximum; our files are capped at 47 MiB).
+
+## Session 29-30 – course catalogue + privacy fix
+21. Run the SQL in `supabase-run-0010-0011.txt` (migrations 0010 + 0011) in the Supabase SQL editor. Safe to run twice.

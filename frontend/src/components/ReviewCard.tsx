@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { courseCatalogue } from "../config/courses";
+import { useCatalogue } from "../lib/useCatalogue";
 import { listSameCourseYear, savePaper, signedPdfUrl, notifyChanged } from "../api/admin";
 import { ageLabel, approveProblems, findSimilar, formToFields, normCode, paperToForm, type AdminPaper } from "../lib/admin";
 import { withCourseName } from "../lib/courses";
@@ -17,7 +17,10 @@ interface Props {
 }
 
 export default function ReviewCard({ paper, mode, onDone, onDelete, onReplaced }: Props) {
-  const [form, setForm] = useState<FormDetails>(() => withCourseName(paperToForm(paper), courseCatalogue));
+  const catalogue = useCatalogue();
+  const [form, setForm] = useState<FormDetails>(() => withCourseName(paperToForm(paper), catalogue));
+  // The live catalogue may arrive after the first render: fill a still-blank name then (never overwrites typing).
+  useEffect(() => { setForm((f) => withCourseName(f, catalogue)); }, [catalogue]);
   const [url, setUrl] = useState<string | null>(null);
   const [showPdf, setShowPdf] = useState(false);
   const [similar, setSimilar] = useState<AdminPaper[]>([]);
