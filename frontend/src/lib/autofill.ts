@@ -19,7 +19,7 @@ export interface AutofillOptions {
 
 export const EMPTY_DETECTED: Detected = { course_code: "", year: null, exam: "", semester: "", note: "" };
 
-// IIST codes: 2-4 letters, 3-5 digits, optional 1-letter suffix (MA111C, CH112H, AA131V). Keep in sync with config + validate.ts
+// Institute codes: 2-4 letters, 3-5 digits, optional 1-letter suffix (MA111C, CH112H, AA131V). Keep in sync with config + validate.ts
 const FINAL_CODE_RE = /^([A-Z]{2,4})(\d{3,5})([A-Z]?)$/;
 // Words that look like a course-code prefix ("Page 12 of 2023") but are not.
 const CODE_STOPWORDS = new Set([

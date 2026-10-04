@@ -52,7 +52,7 @@ export async function signedPdfUrl(filePath: string): Promise<Result<string>> {
 
 interface Envelope<T> { status: "success" | "error"; message: string; data: T }
 
-/** Calls an Edge Function and turns every failure into a readable message (see docs/EDGE_FUNCTIONS.md). */
+/** Calls an Edge Function and turns every failure into a readable message. */
 async function call<T>(name: string, body: unknown): Promise<Result<T>> {
   const { data, error } = await supabase.functions.invoke(name, { body: body as Record<string, unknown> });
   if (error) {

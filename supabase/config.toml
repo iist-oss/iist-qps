@@ -2,9 +2,6 @@
 project_id = "campus-qps"
 [db]
 major_version = 15
-[db.seed]
-enabled = true
-sql_paths = ["./seed.sql"]
 
 # Webhook-called function authenticates with a shared secret, not a user JWT
 [functions.notify-upload]

@@ -28,8 +28,8 @@ export default function AboutPage() {
 
       <p>
         The code is open source at{" "}
-        <a href="https://github.com/iist-oss/iist-qps" target="_blank" rel="noreferrer">github.com/iist-oss/iist-qps</a>.
-        Want to know who made it? See <Link to="/creator">About the builder</Link>.
+        <a href={university.repoUrl} target="_blank" rel="noreferrer">{university.repoUrl.replace("https://", "")}</a>.
+        See <Link to="/credits">Credits</Link> for who made it.
       </p>
     </div>
   );
