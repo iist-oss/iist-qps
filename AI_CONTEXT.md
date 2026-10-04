@@ -19,7 +19,7 @@ server; we re-implement on a serverless stack.
   this repo, and the user applies them (or gives the AI a CLI-capable environment).
 
 ## Data model (summary; truth is `supabase/migrations/`)
-Table `papers`: id, course_code, course_name, year, exam ('' | midsem | endsem | ct | ctN),
+Table `papers`: id, course_code, course_name, year, exam ('' | midsem | endsem | lab | assignment | ct | ctN),
 semester ('' | odd | even), note, file_path, from_library, file_hash, uploaded_by,
 upload_timestamp, approve_status, approved_by, is_deleted, fts (generated tsvector).
 Table `admins`: user_id. Table `app_settings` (daily_upload_cap, allowed_email_domain).
@@ -27,7 +27,7 @@ Edge Functions: approve-paper, delete-paper, notify-upload (contract: docs/EDGE_
 Functions: `is_admin()`, `email_allowed()`, `email_in_allowed_list()`, RPCs `search_papers`, `get_stats`, `email_domain_ok`. Trigger: upload cap.
 Frontend: frontend/ (Vite, HashRouter, email-OTP login (D21), upload page with PDF autofill (D23), config in src/config/university.ts, pure helpers in src/lib/{papers,email,autofill,upload}.ts, `npm test`).
 Tests: `supabase/tests/*.sql` (pgTAP), run in CI. See PLAN.md 'Verification strategy'.
-Buckets: `unapproved` (private), `approved` (public). PDFs only, 10 MiB max. Users may only insert rows whose `file_path` is `unapproved/<their uid>/...`; trashed uploads live in `unapproved/trash/<id>.pdf`.
+Buckets: `unapproved` (private), `approved` (public). PDFs only, 100 MiB max (migration 0007; the Supabase project-wide upload limit must also allow it). Users may only insert rows whose `file_path` is `unapproved/<their uid>/...`; trashed uploads live in `unapproved/trash/<id>.pdf`.
 Local SQL check without Supabase: `tools/local-db-test/run.sh` (plain Postgres + stubs + pgTAP shim).
 
 ## Lessons carried over from the original IQPS (do not repeat these)

@@ -111,3 +111,10 @@ test("semester from the semester number", () => {
   assert.equal(findSemesterByNumber("i semester"), ""); // lower-case "i" is a word, not a numeral
   assert.equal(findSemesterByNumber("Mid Sem"), "");
 });
+
+test("lab and assignment papers (non-exam material) are detected, but real exam wording wins", () => {
+  assert.equal(findExam("Basic Engineering Lab - AutoCAD exercise"), "lab");
+  assert.equal(findExam("Assignment 1 - Mechanics"), "assignment");
+  assert.equal(findExam("Mid Semester Examination, Laboratory Block"), "midsem");
+  assert.equal(findExam("nothing relevant"), "");
+});

@@ -54,3 +54,11 @@ test("validateForm accepts IIST codes with a letter suffix", () => {
   assert.ok(!validateForm({ ...good, course_code: "MA111CD" }, 2026).ok);
   assert.ok(!validateForm({ ...good, course_code: "M111C" }, 2026).ok);
 });
+
+test("validateForm accepts lab and assignment; 100 MiB file limit", () => {
+  assert.ok(validateForm({ ...good, exam: "lab" }, 2026).ok);
+  assert.ok(validateForm({ ...good, exam: "assignment" }, 2026).ok);
+  assert.ok(!validateForm({ ...good, exam: "quiz" }, 2026).ok);
+  assert.equal(checkFileBasic({ name: "a.pdf", size: 50 * 1024 * 1024, type: "application/pdf" }, 100), null);
+  assert.match(checkFileBasic({ name: "a.pdf", size: 101 * 1024 * 1024, type: "application/pdf" }, 100)!, /100 MiB/);
+});

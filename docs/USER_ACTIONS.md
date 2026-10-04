@@ -34,3 +34,7 @@ After this, just say "continue" – the AI reads CLAUDE.md and picks up from AI_
 16. Supabase -> Edge Functions -> Secrets: add `WEBHOOK_SECRET` (long random), `SMTP_USER` (the Gmail address), `SMTP_PASS` (the Gmail app password), `SITE_URL` (https://iist-oss.github.io/iist-qps).
 17. Make sure `notify-upload` is deployed (needs the SUPABASE_ACCESS_TOKEN GitHub secret).
 18. Database -> Webhooks -> create: table `papers`, event Insert, type Supabase Edge Functions -> `notify-upload`, POST, header `x-webhook-secret` = the same value as step 16.
+
+## Session 19 – lab/assignment types and 100 MiB (D26)
+19. Run `supabase/migrations/0007_lab_assignment_100mib.sql` in the Supabase SQL editor (production; CI only tests it).
+20. Supabase Dashboard -> Storage -> Settings -> "Upload file size limit": set to 100 MB. The Free plan allows at most 50 MB there; a paid plan is needed for the full 100 MiB. Until then the effective limit is 50 MB.

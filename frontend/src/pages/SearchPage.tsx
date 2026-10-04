@@ -9,7 +9,7 @@ import { ALL_EXAM_FILTERS, parseExamFilter } from "../lib/papers";
 import { university } from "../config/university";
 import type { ExamFilter, Paper } from "../types";
 
-const EXAM_LABELS: Record<ExamFilter, string> = { midsem: "Midsem", endsem: "Endsem", ct: "Class test" };
+const EXAM_LABELS: Record<ExamFilter, string> = { midsem: "Midsem", endsem: "Endsem", ct: "Class test", lab: "Lab", assignment: "Assignment" };
 
 export default function SearchPage() {
   const [params, setParams] = useSearchParams();

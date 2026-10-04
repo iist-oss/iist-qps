@@ -5,7 +5,7 @@ export type SemesterValue = "" | "odd" | "even";
 export interface Detected {
   course_code: string;
   year: number | null;
-  exam: string; // '' | midsem | endsem | ct | ct<N>
+  exam: string; // '' | midsem | endsem | lab | assignment | ct | ct<N>
   semester: SemesterValue;
   note: string;
 }
@@ -68,13 +68,26 @@ const EXAM_PATTERNS: Array<[RegExp, (m: RegExpExecArray) => string]> = [
   [/\btest[\s_\u2013\u2014-]*(?:no\.?\s*)?(IV|V|III|II|I|[1-9])\b/i, (m) => "ct" + (ROMAN[m[1].toUpperCase()] ?? m[1])],
 ];
 
-export function findExam(text: string): string {
+// Non-exam material. Only used when no real exam wording is found, so a midsem header that mentions "Laboratory" stays a midsem.
+const EXTRA_PATTERNS: Array<[RegExp, string]> = [
+  [/\bassignments?\b/i, "assignment"],
+  [/\blab(?:oratory)?\b/i, "lab"],
+  [/\bpractical\b/i, "lab"],
+  [/\bautocad\b/i, "lab"],
+];
+
+function earliest(text: string, patterns: Array<[RegExp, (m: RegExpExecArray) => string]>): string {
   let best: { index: number; value: string } | null = null;
-  for (const [re, toValue] of EXAM_PATTERNS) {
+  for (const [re, toValue] of patterns) {
     const m = re.exec(text);
     if (m && (best === null || m.index < best.index)) best = { index: m.index, value: toValue(m) };
   }
   return best?.value ?? "";
+}
+
+export function findExam(text: string): string {
+  return earliest(text, EXAM_PATTERNS) ||
+    earliest(text, EXTRA_PATTERNS.map(([re, v]): [RegExp, (m: RegExpExecArray) => string] => [re, () => v]));
 }
 
 export function findSemester(text: string, aliases: Record<string, "odd" | "even">): SemesterValue {

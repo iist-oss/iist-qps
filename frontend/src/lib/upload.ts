@@ -31,6 +31,8 @@ export const EXAM_OPTIONS: Array<{ value: string; label: string }> = [
   { value: "ct3", label: "Class test 3" },
   { value: "ct4", label: "Class test 4" },
   { value: "ct5", label: "Class test 5" },
+  { value: "lab", label: "Lab / practical" },
+  { value: "assignment", label: "Assignment" },
 ];
 export const SEMESTER_OPTIONS: Array<{ value: SemesterValue; label: string }> = [
   { value: "", label: "Not sure" },
@@ -39,7 +41,7 @@ export const SEMESTER_OPTIONS: Array<{ value: SemesterValue; label: string }> = 
 ];
 
 const CODE_RE = /^[A-Z]{2,4}\d{3,5}[A-Z]?$/; // keep in sync with supabase/functions/_shared/validate.ts
-const EXAM_RE = /^(midsem|endsem|ct\d*)$/;
+const EXAM_RE = /^(midsem|endsem|lab|assignment|ct\d*)$/;
 
 export const emptyForm = (): FormDetails =>
   ({ course_code: "", course_name: "", year: "", exam: "", semester: "", note: "" });

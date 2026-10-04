@@ -1,7 +1,7 @@
 // Pure helpers (no React/Supabase imports) so they can be unit-tested in plain Node.
 import type { ExamFilter, Paper } from "../types";
 
-export const ALL_EXAM_FILTERS: ExamFilter[] = ["midsem", "endsem", "ct"];
+export const ALL_EXAM_FILTERS: ExamFilter[] = ["midsem", "endsem", "ct", "lab", "assignment"];
 
 /** Parses `?exam=midsem,ct`. Missing param -> all; unknown values dropped. */
 export function parseExamFilter(raw: string | null): ExamFilter[] {
@@ -20,12 +20,16 @@ export function examTag(exam: string): string {
   if (exam === "") return "Unknown";
   if (exam === "midsem") return "MID";
   if (exam === "endsem") return "END";
+  if (exam === "lab") return "LAB";
+  if (exam === "assignment") return "ASSIGN";
   return exam.toUpperCase(); // ct, ct1, ct2 ...
 }
 export function examTooltip(exam: string): string {
   if (exam === "") return "Unknown exam";
   if (exam === "midsem") return "Midsem";
   if (exam === "endsem") return "Endsem";
+  if (exam === "lab") return "Lab / practical";
+  if (exam === "assignment") return "Assignment";
   const n = exam.slice(2);
   return `Class test ${n.length > 0 ? n : "?"}`;
 }

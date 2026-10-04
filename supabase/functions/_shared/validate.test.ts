@@ -39,3 +39,8 @@ Deno.test("IIST course codes with a letter suffix are valid", () => {
   assertEquals(validateDetails({ ...good, course_code: "CH112H" }, true).ok, true);
   assertEquals(validateDetails({ ...good, course_code: "MA111CD" }, true).ok, false);
 });
+
+Deno.test("lab and assignment exam types are valid", () => {
+  assertEquals(validateDetails({ ...good, exam: "lab" }, true).ok, true);
+  assertEquals(validateDetails({ ...good, exam: "assignment" }, true).ok, true);
+});

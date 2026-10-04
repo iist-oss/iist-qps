@@ -11,7 +11,7 @@ export interface PaperDetails {
 }
 
 export const normalizeCourseCode = (s: string) => s.replace(/[\s-]+/g, "").toUpperCase();
-export const isValidExam = (e: string) => e === "" || e === "midsem" || e === "endsem" || /^ct\d*$/.test(e);
+export const isValidExam = (e: string) => e === "" || e === "midsem" || e === "endsem" || e === "lab" || e === "assignment" || /^ct\d*$/.test(e);
 
 export type ValidationResult =
   | { ok: true; value: PaperDetails }

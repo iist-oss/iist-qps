@@ -167,3 +167,10 @@
 - **Did:** CI now uses a fake anon-shaped JWT (role anon, ref `example`, matching `https://example.supabase.co`). Guard left strict. Checked with `configProblems`: new key -> no problems, old key -> the reported error.
 - **UNTESTED:** the CI run itself. If the DEPLOY workflow (not CI) shows the same error, the real `VITE_SUPABASE_ANON_KEY` secret is malformed (quotes/spaces/truncated) and must be re-pasted.
 - **Next step:** push, confirm green; then the Q7-Q9 decisions / B5 admin.
+
+### Session 19 – 2026-10-05 – Lab/assignment types + 100 MiB limit (user decisions)
+- **Did:** Migration 0007 (new exam CHECK allowing lab/assignment; bucket limits -> 104857600). Same two values added to `lib/upload.ts` (options + regex), `validate.ts`, `types.ts`, `lib/papers.ts` (filters, tags LAB/ASSIGN, tooltips), SearchPage labels; autofill fallback patterns (only if no real exam wording). `maxFileMiB` 10 -> 100. D26, Q7 answered, USER_ACTIONS 19-20, new pgTAP `lab_assignment.test.sql` (6).
+- **Verified here:** 43 node tests pass; `tsc --strict` on lib files; real Postgres 16 run of all migrations + pgTAP shim: 38 assertions ok (5+3+9+6+15).
+- **UNTESTED:** SearchPage/UploadPage rendering (CI builds), deno test addition, migration on real Supabase (CI), the 100 MiB path end to end (browser memory use of pdf.js/tesseract on very large scans unknown).
+- **Caveat:** Supabase project-wide upload limit (Free = 50 MB) caps the effective size until changed/upgraded (USER_ACTIONS 20).
+- **Next step:** user pushes, runs 0007 in SQL editor; PDF split (Q9) when the file is attached; then B5 admin.

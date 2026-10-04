@@ -11,7 +11,7 @@ const P = (id: number, name: string, year: number) => ({
 });
 
 test("parseExamFilter", () => {
-  assert.deepEqual(parseExamFilter(null), ["midsem", "endsem", "ct"]);
+  assert.deepEqual(parseExamFilter(null), ["midsem", "endsem", "ct", "lab", "assignment"]);
   assert.deepEqual(parseExamFilter("ct,bogus,midsem"), ["ct", "midsem"]);
   assert.deepEqual(parseExamFilter(""), []);
 });
@@ -44,4 +44,11 @@ test("filter and sort", () => {
 test("formatCount", () => {
   assert.equal(formatCount(999), "999");
   assert.equal(formatCount(12400), "12k");
+});
+
+test("lab and assignment tags and filters", () => {
+  assert.equal(examTag("lab"), "LAB");
+  assert.equal(examTag("assignment"), "ASSIGN");
+  assert.equal(examTooltip("assignment"), "Assignment");
+  assert.deepEqual(parseExamFilter("lab,assignment,bogus"), ["lab", "assignment"]);
 });

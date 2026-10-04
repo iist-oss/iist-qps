@@ -1,7 +1,7 @@
 export type Semester = "" | "odd" | "even";
-/** '' | 'midsem' | 'endsem' | 'ct' | 'ct<N>' */
+/** '' | 'midsem' | 'endsem' | 'lab' | 'assignment' | 'ct' | 'ct<N>' */
 export type Exam = string;
-export type ExamFilter = "midsem" | "endsem" | "ct";
+export type ExamFilter = "midsem" | "endsem" | "ct" | "lab" | "assignment";
 
 /** Row shape returned by the search_papers RPC. */
 export interface Paper {

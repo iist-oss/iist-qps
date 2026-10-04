@@ -46,7 +46,7 @@ the latest CI result, if any, and fixing failures first.
 - [ ] Optional: Cloudflare Turnstile captcha to stop scripted code-request floods
 
 ### B4 Upload + OCR
-- [~] Drag/drop + "Choose PDF files" button, per-file status (never abort batch), 10 MiB + PDF checks (extension/type, size, `%PDF-` header)  (session 14)
+- [~] Drag/drop + "Choose PDF files" button, per-file status (never abort batch), 100 MiB (0007) + PDF checks (extension/type, size, `%PDF-` header)  (session 14)
 - [~] Autofill: filename first, then first-page text (pdf.js) or OCR (tesseract.js) for scans; config regex; Autumn/Monsoon -> odd, Spring -> even (D12)  [pure logic tested: 23 node tests pass; browser OCR UNTESTED]
 - [~] Details edited inline on each file card (no modal, so the old hooks-in-`if` bug cannot occur) (D23)
 - [~] Upload = Storage upload to `unapproved/<uid>/<uuid>.pdf`, then insert row; storage object removed if the insert fails
