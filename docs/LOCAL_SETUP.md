@@ -15,7 +15,7 @@ ask ONCE, then replace the `?` and add a line to the change log at the bottom.
 | Git name | harsha-maloth (use the real full name instead if preferred: ?) |
 | Git email | 232861054+harsha-maloth@users.noreply.github.com (GitHub no-reply address; keeps the real email out of commits) |
 | GitHub username | harsha-maloth |
-| GitHub repo | https://github.com/iist-oss/iist-qps (owned by the org `iist-oss`; visibility: ?) |
+| GitHub repo | https://github.com/iist-oss/iist-qps (owned by the org `iist-oss`; PUBLIC – so never commit secrets; takedown policy Q6 matters more) |
 | Pages URL (expected) | https://iist-oss.github.io/iist-qps/ (use for Supabase Site URL / redirect URLs, USER_ACTIONS 13) |
 | University | probably IIST (inferred from the org name `iist-oss`; NOT confirmed – see OPEN_QUESTIONS Q1) |
 | GitHub auth method | `gh auth login` HTTPS + web browser – DONE 2026-10-04, logged in as harsha-maloth, token scopes gist/read:org/repo/workflow (so Actions workflows can be pushed) |
@@ -68,3 +68,4 @@ gh run view --log-failed | head -80                            # failing CI log 
 - 2026-10-04 – user gave: GitHub user harsha-maloth, no-reply email, repo iist-oss/iist-qps. Setup commands switched from `gh repo create` to `git remote add origin`. Still unknown: repo visibility, Supabase ref, university confirmation.
 - 2026-10-04 – user gave Supabase URL (ref mebfxiizwzzsjuuqftoy). Unapplied so far: migrations, functions, secrets (USER_ACTIONS 3-14 not confirmed done).
 - 2026-10-04 – setup.sh finished OK (gh login done). User preference recorded: no local tests, test on production. Observed: the follow-up git init/remote commands were pasted while setup.sh was still running and probably never executed; first push still pending. Also noticed `frontend/public/logo.svg` in the user's extracted copy that no AI session created – treat as the user's own file, keep it.
+- 2026-10-04 – first push DONE (commit 511eda5, 57 files, branch main). Repo is public. Verified by a shallow clone: no secrets/.env in the repo. AI sessions have read-only git access to it; CI logs are not visible to the AI, so the user pastes failures.

@@ -80,6 +80,8 @@ reset role;
 
 -- storage cleanup policy: own orphan file deletable, file referenced by a row is not
 insert into storage.objects (bucket_id, name) values ('unapproved','00000000-0000-0000-0000-0000000000a1/orphan.pdf'), ('unapproved','00000000-0000-0000-0000-0000000000a1/x.pdf');
+-- Supabase refuses raw DELETEs on storage tables unless this flag is set (the Storage API sets it for API deletes)
+select set_config('storage.allow_delete_query', 'true', true);
 set local role authenticated;
 select set_config('request.jwt.claims',
   '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","email":"student@x.edu"}', true);

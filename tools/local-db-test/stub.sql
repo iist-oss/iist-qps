@@ -22,3 +22,12 @@ create function is(anyelement, anyelement, text) returns text language sql as $$
 create function lives_ok(text, text) returns text language plpgsql as $$ begin execute $1; return _r(true,$2); exception when others then return _r(false,$2||' ['||sqlerrm||']'); end $$;
 create function throws_ok(text, text, text, text) returns text language plpgsql as $$ begin execute $1; return _r(false,$4||' [no error]'); exception when others then return _r(sqlstate=$2 and ($3 is null or sqlerrm=$3), $4||' ['||sqlstate||' '||sqlerrm||']'); end $$;
 create function finish() returns setof text language sql as $$ select format('# plan %s, ran %s, failed %s',(select p from _plan),count(*),count(*) filter (where not ok)) from _t $$;
+-- mirror of Supabase's guard: direct DELETEs on storage.objects are refused unless the Storage API flag is set
+create function storage.protect_delete() returns trigger language plpgsql as $$
+begin
+  if coalesce(current_setting('storage.allow_delete_query', true), '') <> 'true' then
+    raise exception 'Direct deletion from storage tables is not allowed. Use the Storage API instead.' using hint = 'This prevents accidental data loss from orphaned objects.';
+  end if;
+  return old;
+end $$;
+create trigger protect_objects_delete before delete on storage.objects for each statement execute function storage.protect_delete();

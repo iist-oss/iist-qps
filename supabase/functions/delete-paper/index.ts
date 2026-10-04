@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
   const mode = body?.mode;
   if (!["soft", "restore", "hard"].includes(mode)) return fail("`mode` must be soft, restore or hard.");
   const ids: number[] = Array.isArray(body?.ids)
-    ? [...new Set(body.ids.map(Number))].filter((n: number) => Number.isInteger(n) && n > 0) as number[]
+    ? [...new Set<number>((body.ids as unknown[]).map(Number))].filter((n) => Number.isInteger(n) && n > 0)
     : [];
   if (ids.length === 0) return fail("`ids` must be a non-empty array.");
   if (ids.length > 100) return fail("At most 100 ids per request.");

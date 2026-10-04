@@ -92,3 +92,17 @@
 - **Did:** Read the user's Termux transcript: tools installed, gh logged in as harsha-maloth. Recorded the 'no local tests, test on production' preference in LOCAL_SETUP.md, AI_CONTEXT.md; USER_ACTIONS 15 marked skip.
 - **State:** first push to iist-oss/iist-qps NOT confirmed done.
 - **Next step:** user runs push.sh, then applies migrations in the Supabase SQL editor.
+
+### Session 8e – 2026-10-04 – First push confirmed
+- **Did:** User pushed (511eda5). Cloned read-only: 57 files, no secrets. Repo is public. AI cannot read Actions logs (API 403 without push attach).
+- **Next step:** user checks Actions tab / pastes failing logs; applies migrations in Supabase SQL editor.
+
+### Session 9 – 2026-10-04 – First CI results
+- **CI (run on 511eda5):** Frontend CI GREEN (tsc + vite build + 6 tests). Edge Functions check RED: TS2769 in delete-paper ids parsing (fixed: `new Set<number>(...)`). Database tests RED: log not yet seen.
+- **Next step:** user pastes `gh run view <id> --log-failed | head -80` for Database tests; fix; re-push.
+
+### Session 9b – 2026-10-04 – Database CI failure fixed
+- **CI result (real Supabase local stack):** migrations 0001-0004 applied, admin_edit.test.sql 5/5 ok, rls.test.sql 13/15 ok. The two failures were in the test, not the schema: Supabase blocks raw `DELETE` on `storage.objects` (trigger `storage.protect_delete`) unless `storage.allow_delete_query = 'true'` (the Storage API sets it).
+- **Fix:** rls.test.sql sets that flag before the two delete assertions; tools/local-db-test/stub.sql now mirrors the guard trigger so the failure reproduces locally (confirmed fail before, 15/15 after).
+- **Now verified on real Supabase stack (via CI):** migrations apply, RLS/policy/cap/domain/path tests. Still unverified: deno test (blocked by the delete-paper type error, fixed in session 9), Edge Function runtime behaviour, storage.move across buckets, real Google login.
+- **Next step:** push, confirm all 3 workflows green, then user applies migrations to the production project.

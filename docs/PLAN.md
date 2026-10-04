@@ -19,7 +19,7 @@ the latest CI result, if any, and fixing failures first.
 ## Build queue (each item = one session; acceptance criteria in brackets)
 
 ### B1 Database (mostly written)
-- [~] 0001 schema/RLS/search, 0002 storage, 0003 settings + domain restriction + upload cap  (session 7: applied + re-applied on local Postgres 16 with stubs; not yet on real Supabase)
+- [~] 0001 schema/RLS/search, 0002 storage, 0003 settings + domain restriction + upload cap  (session 9: applied by CI on the real Supabase local stack; production project not yet applied)
 - [~] seed.sql, pgTAP tests (20 assertions, pass locally via `tools/local-db-test/run.sh`), CI workflow `db-tests.yml`
 - [ ] Fix whatever CI reports  [CI green]
 
