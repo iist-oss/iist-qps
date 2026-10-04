@@ -21,8 +21,8 @@ Request: `{ ids: number[] (<=100), mode: "soft" | "restore" | "hard" }`
 - Response data: `[{ id, status, message }]` – one per id, batch never aborts.
 
 ## notify-upload  (DB webhook, not called by the frontend)
-Triggered by INSERT on `papers`. Needs header `x-webhook-secret`. Posts to Slack if configured.
+Triggered by INSERT on `papers`. Needs header `x-webhook-secret`. Emails every admin (Gmail SMTP, port 465; first upload of a 10-minute burst only) and posts to Slack if configured. Each channel is skipped if its secrets are unset.
 
 ## Required function secrets
-`WEBHOOK_SECRET` (any long random string), `SLACK_WEBHOOK_URL` (optional), `SITE_URL` (optional, for the review link).
+`WEBHOOK_SECRET` (any long random string), `SMTP_USER` + `SMTP_PASS` (Gmail address + app password, for admin emails), `SMTP_FROM`/`SMTP_HOST`/`SMTP_PORT` (optional), `SLACK_WEBHOOK_URL` (optional), `SITE_URL` (optional, for the review link).
 `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` are injected automatically.

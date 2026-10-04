@@ -60,3 +60,6 @@ Allowed: `iist.ac.in` and `ug.iist.ac.in` (subdomains must be listed separately)
 
 ## D21 – Login is an emailed one-time code, not Google (2026-10-04, session 12)
 IIST mail is Zimbra, not Google, so Google OAuth is dropped. Flow: `/login` page -> email -> 6-digit code (`signInWithOtp` + `verifyOtp` type `email`). The client first asks `public.email_domain_ok(email)` (migration 0006, returns only true/false) so outsiders get a clear message and no email is sent; the sign-up trigger from 0005 stays the real lock. Needs custom SMTP in Supabase (built-in sender only mails team members and is heavily rate-limited), and BOTH the "Magic Link" and "Confirm signup" templates must show `{{ .Token }}`. Supersedes D8 (Google) and the redirect-URL need in D15 (PKCE kept, harmless).
+
+## D22 – Admin notification = email from notify-upload (2026-10-04, session 13)
+User skipped Slack and wants admins emailed. notify-upload now sends via Gmail SMTP (app password, port 465 because Supabase blocks 25/587) using denomailer; recipients = all rows in `admins` (emails read via auth admin API). Burst guard: skip if another unapproved paper was uploaded in the last 10 min. Slack kept as optional. A header badge with the pending count is still planned for B5.

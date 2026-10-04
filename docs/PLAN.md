@@ -26,7 +26,7 @@ the latest CI result, if any, and fixing failures first.
 ### B2 Edge Functions (Deno/TypeScript)
 - [~] `approve-paper`: admin-only; update row, move file unapproved->approved, set file_path; if move fails revert row
 - [~] `delete-paper`: admin-only; soft delete (flag) and hard delete (row + storage object)
-- [~] `notify-upload`: DB webhook -> Slack/email (no-op if secret unset)
+- [~] `notify-upload`: DB webhook -> email to all admins (Gmail SMTP) + optional Slack (no-op if secrets unset)
 - [~] Shared helpers `_shared/` (auth, cors, validate, trash) – validate logic verified under Node; rest UNTESTED
 - [~] Migration 0004 `admin_apply_edit` (transactional edit) + pgTAP test `admin_edit.test.sql`
 - [~] CI `functions-check.yml` (deno check + deno test); API contract in docs/EDGE_FUNCTIONS.md
@@ -42,7 +42,7 @@ the latest CI result, if any, and fixing failures first.
 
 ### B3b Email OTP login (D21)
 - [~] Migration 0006 `email_domain_ok` + pgTAP `email_check.test.sql` (3)
-- [~] `/login` page (email -> 6-digit code, resend cooldown), AuthContext `sendCode`/`verifyCode`, `lib/email.ts` + tests  [CI green, then real delivery test: USER_ACTIONS 11-13]
+- [x] `/login` page (email -> 6-digit code, resend cooldown), AuthContext `sendCode`/`verifyCode`, `lib/email.ts` + tests  (user confirmed real OTP login works, 2026-10-04)
 - [ ] Optional: Cloudflare Turnstile captcha to stop scripted code-request floods
 
 ### B4 Upload + OCR

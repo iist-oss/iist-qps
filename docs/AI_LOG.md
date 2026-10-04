@@ -124,3 +124,9 @@
 - **UNTESTED:** `LoginPage.tsx` and all React code (no tsc/vite build here), migration 0006 + its pgTAP test, real email delivery.
 - **Needs from user:** run 0006 in the SQL editor; enable Email provider; configure SMTP + edit both templates; test delivery (USER_ACTIONS 11-13).
 - **Next step:** push, read CI, then B4 upload + OCR.
+
+### Session 13 – 2026-10-04 – Admin email notification
+- **Did:** User confirmed email OTP login works. Rewrote `notify-upload` to email all admins via Gmail SMTP (465) with a 10-minute burst guard; Slack optional. Updated EDGE_FUNCTIONS.md, DECISIONS D22. Marked B3b OTP login verified by user.
+- **UNTESTED:** whole function (no Deno here): `deno check` of the denomailer import, SMTP over 465 from Supabase, auth.admin.getUserById. Nothing can trigger it until B4 (upload) exists.
+- **Needs from user:** secrets WEBHOOK_SECRET, SMTP_USER, SMTP_PASS, SITE_URL; deploy functions (SUPABASE_ACCESS_TOKEN); create DB webhook on papers INSERT with header x-webhook-secret.
+- **Next step:** B4 upload + OCR, then B5 admin (pending badge).
