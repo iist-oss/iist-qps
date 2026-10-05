@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../auth/AuthContext";
 import { university } from "../config/university";
@@ -9,6 +9,8 @@ const RESEND_SECONDS = 30;
 export default function LoginPage() {
   const { user, sendCode, verifyCode } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: string } | null)?.from ?? "/";
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -16,7 +18,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
 
-  useEffect(() => { if (user) navigate("/", { replace: true }); }, [user, navigate]);
+  useEffect(() => { if (user) navigate(from, { replace: true }); }, [user, navigate, from]);
 
   useEffect(() => {
     if (cooldown <= 0) return;

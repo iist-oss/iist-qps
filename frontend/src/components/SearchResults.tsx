@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { FaFilePdf, FaFlag, FaLink } from "react-icons/fa";
-import { publicFileUrl } from "../api/papers";
+import { signedFileUrl } from "../api/papers";
 import {
   availableYears, examTag, examTooltip, filterAndSort, paperTitle, semesterTag, semesterTooltip,
   type SortBy, type SortOrder,
@@ -9,19 +9,28 @@ import {
 import { university } from "../config/university";
 import type { Paper } from "../types";
 
-async function copyLink(url: string) {
+async function openPdf(filePath: string) {
+  // Open the tab first (inside the click) so pop-up blockers allow it, then point it at the signed link.
+  const tab = window.open("", "_blank");
+  const url = await signedFileUrl(filePath);
+  if (!url) { tab?.close(); toast.error("Could not open the PDF. Please sign in again."); return; }
+  if (tab) { tab.opener = null; tab.location.href = url; } else window.location.href = url;
+}
+
+async function copyLink(filePath: string) {
+  const url = await signedFileUrl(filePath);
+  if (!url) { toast.error("Could not create the link"); return; }
   try {
     await navigator.clipboard.writeText(url);
-    toast.success("Link copied");
+    toast.success("Link copied. It stops working after 1 hour.");
   } catch {
     toast.error("Could not copy the link");
   }
 }
 
 function ResultCard({ paper }: { paper: Paper }) {
-  const url = publicFileUrl(paper.file_path);
   const reportHref = `mailto:${university.contact.email}?subject=${encodeURIComponent(`Report paper #${paper.id}`)}`
-    + `&body=${encodeURIComponent(`Paper: ${paperTitle(paper)} ${paper.year}\nLink: ${url}\n\nWhat is wrong (wrong details, names or roll numbers visible, copyright, other): `)}`;
+    + `&body=${encodeURIComponent(`Paper: ${paperTitle(paper)} ${paper.year}\nPaper id: ${paper.id}\n\nWhat is wrong (wrong details, names or roll numbers visible, copyright, other): `)}`;
   return (
     <div className="result-card">
       <div className="result-info">
@@ -34,8 +43,8 @@ function ResultCard({ paper }: { paper: Paper }) {
         </div>
       </div>
       <div className="result-btns">
-        <a className="icon-btn" href={url} target="_blank" rel="noopener noreferrer" title="Open PDF" aria-label={`Open PDF: ${paperTitle(paper)} ${paper.year}`}><FaFilePdf /></a>
-        <button className="icon-btn" onClick={() => copyLink(url)} title="Copy link to PDF" aria-label="Copy link to PDF"><FaLink /></button>
+        <button className="icon-btn" onClick={() => void openPdf(paper.file_path)} title="Open PDF" aria-label={`Open PDF: ${paperTitle(paper)} ${paper.year}`}><FaFilePdf /></button>
+        <button className="icon-btn" onClick={() => void copyLink(paper.file_path)} title="Copy link to PDF" aria-label="Copy link to PDF"><FaLink /></button>
         <a className="icon-btn" href={reportHref} title="Report a problem with this paper" aria-label="Report a problem with this paper"><FaFlag /></a>
       </div>
     </div>

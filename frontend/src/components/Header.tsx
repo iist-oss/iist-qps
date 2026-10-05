@@ -27,9 +27,9 @@ export default function Header() {
         {university.name}
       </NavLink>
       <nav>
-        <NavLink to="/">Search</NavLink>
-        <NavLink to="/browse">Browse</NavLink>
-        <NavLink to="/upload">Upload</NavLink>
+        {user && <NavLink to="/">Search</NavLink>}
+        {user && <NavLink to="/browse">Browse</NavLink>}
+        {user && <NavLink to="/upload">Upload</NavLink>}
         {user && <NavLink to="/my-uploads">My uploads</NavLink>}
         <button className="link-btn" onClick={toggleTheme} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} title={theme === "dark" ? "Light mode" : "Dark mode"}>
           {theme === "dark" ? <FaSun /> : <FaMoon />}

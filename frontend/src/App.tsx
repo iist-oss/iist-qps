@@ -1,6 +1,7 @@
 import { HashRouter, Link, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./auth/AuthContext";
+import RequireAuth from "./auth/RequireAuth";
 import Header from "./components/Header";
 import SearchPage from "./pages/SearchPage";
 import UploadPage from "./pages/UploadPage";
@@ -32,18 +33,18 @@ export default function App() {
         )}
         <main>
           <Routes>
-            <Route path="/" element={<SearchPage />} />
+            <Route path="/" element={<RequireAuth><SearchPage /></RequireAuth>} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/credits" element={<CreditsPage />} />
             <Route path="/creator" element={<Navigate to="/credits" replace />} />
             <Route path="/takedown" element={<TakedownPage />} />
             <Route path="/status" element={<StatusPage />} />
-            <Route path="/upload" element={<UploadPage />} />
-            <Route path="/browse" element={<BrowsePage />} />
-            <Route path="/my-uploads" element={<MyUploadsPage />} />
-            <Route path="/admin/*" element={<AdminPage />} />
-            <Route path="*" element={<SearchPage />} />
+            <Route path="/upload" element={<RequireAuth><UploadPage /></RequireAuth>} />
+            <Route path="/browse" element={<RequireAuth><BrowsePage /></RequireAuth>} />
+            <Route path="/my-uploads" element={<RequireAuth><MyUploadsPage /></RequireAuth>} />
+            <Route path="/admin/*" element={<RequireAuth><AdminPage /></RequireAuth>} />
+            <Route path="*" element={<RequireAuth><SearchPage /></RequireAuth>} />
           </Routes>
         </main>
         <footer className="site-footer">

@@ -18,9 +18,12 @@ export async function getStats(): Promise<{ totalPapers: number; totalCourses: n
   return { totalPapers: Number(row.total_papers), totalCourses: Number(row.total_courses) };
 }
 
-export function publicFileUrl(filePath: string): string {
+/** The approved bucket is private; files are opened through short-lived signed links. */
+export async function signedFileUrl(filePath: string, seconds = 3600): Promise<string | null> {
   const i = filePath.indexOf("/");
   const bucket = filePath.slice(0, i);
   const path = filePath.slice(i + 1);
-  return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, seconds);
+  if (error || !data) { console.error("signed url", error?.message); return null; }
+  return data.signedUrl;
 }
