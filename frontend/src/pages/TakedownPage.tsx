@@ -28,10 +28,10 @@ export default function TakedownPage() {
 
       <h2>What we store</h2>
       <ul>
-        <li>Searching needs no account and nothing is stored about you.</li>
+        <li>Searching the archive requires a signed-in university account. The site does not use ads, trackers or analytics.</li>
         <li>To upload you sign in with your institute email. We keep that email, and which files you uploaded and when, to stop abuse. It is never shown publicly. Admins can see it.</li>
         <li>Your browser keeps your sign-in session on your own device. There are no ads, trackers or analytics.</li>
-        <li>An uploaded PDF is private until an admin approves it. After that anyone can open it, so do not upload papers with your own name or ID on them.</li>
+        <li>An uploaded PDF is private until an admin approves it. Approved PDFs are accessible to signed-in users through short-lived signed links, so do not upload papers with your own name or ID on them.</li>
       </ul>
 
       <h2>Deleting your own uploads or account</h2>

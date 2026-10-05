@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#0d0d0d" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net https://tessdata.projectnaptha.com; worker-src 'self' blob:; frame-src 'self' https://*.supabase.co; font-src 'self' data:;" />
     <meta name="description" content="Campus QPS: search previous year question papers for the Indian Institute of Space Science and Technology." />
     <link rel="icon" type="image/svg+xml" href="./logo.svg" />
     <meta name="author" content="Maloth Harsha" />
@@ -14,7 +15,6 @@
     <title>Campus QPS – Question Paper Search</title>
   </head>
   <body>
-    <script>try{var t=localStorage.getItem("qps-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
     <div id="root"></div>
     <noscript><p style="padding:1rem;text-align:center">Campus QPS needs JavaScript. Please enable it and reload.</p></noscript>
     <script type="module" src="/src/main.tsx"></script>

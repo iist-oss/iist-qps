@@ -17,6 +17,6 @@ jobs:
         run: echo "SUPABASE_ACCESS_TOKEN secret not set - skipping deploy (this is not a failure)."
       - if: ${{ env.SUPABASE_ACCESS_TOKEN != '' }}
         uses: supabase/setup-cli@v1
-        with: { version: latest }
+        with: { version: 2.39.2 }
       - if: ${{ env.SUPABASE_ACCESS_TOKEN != '' }}
         run: supabase functions deploy approve-paper delete-paper notify-upload daily-digest --project-ref "$PROJECT_REF" --use-api

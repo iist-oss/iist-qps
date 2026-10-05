@@ -9,8 +9,7 @@ export default function AboutPage() {
       <p className="subtitle">{university.tagline}</p>
 
       <p>
-        {university.name} is a free archive of old exam papers for students of {c.institute}. Anyone can search it,
-        with no account.
+        {university.name} is a free archive of old exam papers for students of {c.institute}. Students with an allowed university email can sign in and search the archive.
       </p>
 
       <h2>How it works</h2>

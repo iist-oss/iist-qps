@@ -295,7 +295,7 @@ function TrashList() {
   return (
     <>
       {searchBox}
-      <p className="muted">{total} in Trash. Library papers stay in the public bucket while trashed. For a takedown, delete them permanently.</p>
+      <p className="muted">{total} in Trash. Library papers are kept private while trashed. For a takedown, delete them permanently.</p>
       <div className="select-bar">
         <button type="button" disabled={manyBusy} onClick={() => setTicked(new Set(rows.map((r) => r.id)))}>Select all on page</button>
         <button type="button" disabled={manyBusy || ticked.size === 0} onClick={() => setTicked(new Set())}>Clear</button>

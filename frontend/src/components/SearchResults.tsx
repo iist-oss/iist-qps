@@ -22,7 +22,7 @@ async function copyLink(filePath: string) {
   if (!url) { toast.error("Could not create the link"); return; }
   try {
     await navigator.clipboard.writeText(url);
-    toast.success("Link copied. It stops working after 1 hour.");
+    toast.success("Link copied. It expires after 1 hour and may be opened without signing in until it expires.");
   } catch {
     toast.error("Could not copy the link");
   }

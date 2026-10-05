@@ -1,6 +1,6 @@
 # Campus QPS
 
-A question-paper search site for the Indian Institute of Space Science and Technology. Students search old exam papers without an account, sign in with a university email to upload new ones, and admins review and approve uploads before they go public.
+A question-paper search site for the Indian Institute of Space Science and Technology. Students sign in with an allowed university email to search and upload exam papers, and admins review and approve uploads before they become available to other signed-in users.
 
 **Final release: 5 October 2026.** See [Project status](#project-status) before you rely on this.
 
@@ -51,7 +51,7 @@ frontend/                 the website
   src/config/             university.ts (all site-specific settings), courses.ts (fallback catalogue)
   public/                 404.html (Pages fallback), logo.svg
 supabase/
-  migrations/             0001 to 0012, applied in order
+  migrations/             0001 to 0014, applied in order
   functions/              approve-paper, delete-paper, notify-upload, daily-digest, _shared/
   config.toml             Supabase project config
 .github/workflows/        deploy-pages, deploy-functions, digest, keepalive
@@ -65,8 +65,8 @@ Defined by `supabase/migrations/`. Never edit an applied migration; add a new on
 - `courses`: code, name, source, `sem_no` (curriculum semester 1 to 12, used to pre-fill odd/even). It fills itself when papers are approved, and admins can paste lists in. Seeded with Semester 1 only.
 - `admins`: user ids with admin rights.
 - `app_settings` (admins only): `daily_upload_cap` (default 20), `allowed_email_domain` (comma-separated), `allowed_extra_emails` (exact addresses allowed in addition, such as a bootstrap admin).
-- Functions: `search_papers` (combines trigram, full-text and prefix ranking), `get_stats`, `is_admin`, `email_allowed`, `email_in_allowed_list`, `email_domain_ok`, `admin_apply_edit` (service role only).
-- Storage: `unapproved` (private) and `approved` (public) buckets, PDF only, **47 MiB** per file (migration 0009, just under the 50 MB Supabase Free cap). Users can only upload to `unapproved/<their user id>/`. Trashed uploads are moved to `unapproved/trash/<id>.pdf` so they stop being publicly downloadable.
+- Functions: `search_papers` (combines trigram, full-text and prefix ranking), `get_stats`, `ping`, `is_admin`, `email_allowed`, `email_in_allowed_list`, `admin_apply_edit` (service role only). The old anonymous `email_domain_ok` probe is no longer granted.
+- Storage: `unapproved` and `approved` are both private buckets, PDF only, **47 MiB** per file. Users can only upload to `unapproved/<their user id>/`, with a 20-object per-user cap for unapproved objects. Approved files are opened through short-lived signed URLs.
 
 Migrations 0007 to 0009 change the file-size limit three times. They are history, not mistakes; keep them.
 
@@ -96,7 +96,7 @@ You need a GitHub account and a free Supabase account.
 
 1. **Fork or copy the repo** to your GitHub account.
 2. **Create a Supabase project.** Note the project URL, the project ref, and the anon (public) key.
-3. **Apply the database.** With the Supabase CLI: `supabase link --project-ref <ref>` then `supabase db push`. This runs all 12 migrations.
+3. **Apply the database.** With the Supabase CLI: `supabase link --project-ref <ref>` then `supabase db push`. This runs all 14 migrations.
 4. **Allowed emails.** In `app_settings`, set `allowed_email_domain` to your university domain(s), for example `iist.ac.in,ug.iist.ac.in`. A subdomain must be listed on its own. Empty means anyone can sign up.
 5. **Login emails.** The site signs people in with a one-time code sent by email. In Supabase, Authentication, Email Templates, make sure the template shows the code (`{{ .Token }}`), not only a link. Supabase's built-in mail sender is heavily rate-limited, so for real use configure your own SMTP under Authentication settings.
 6. **Make the first admin.** Sign in once on the site, then in the Supabase SQL editor:
@@ -166,7 +166,7 @@ These are hard-coded for the original site:
 ## Security model
 
 - Row-level security is the real boundary. The anon key is public.
-- Anyone can read approved, non-deleted papers. Users can read their own uploads. Admins can do everything.
+- Signed-in users with an allowed university email can read approved, non-deleted papers. Users can read their own uploads. Admins can do everything.
 - Users can only insert unapproved rows that point at their own folder, and only if their email is allowed.
 - A user can remove their own uploaded file only while no database row points at it (this lets a failed upload clean itself up).
 - A database trigger blocks sign-up for non-allowed email addresses and another enforces the daily upload cap.
@@ -175,7 +175,7 @@ These are hard-coded for the original site:
 
 ## Privacy
 
-Searching needs no account and stores nothing. Signing in stores the email and who uploaded what and when, visible to admins only. Uploaded PDFs are private until approved and public afterwards. There are no ads, trackers or analytics. The in-app Takedown & privacy page states this to users; keep it accurate if you change behaviour.
+Searching requires a signed-in university account. Signing in stores the email and upload metadata needed to operate the archive; sensitive uploader/admin IDs and file hashes are not exposed through the normal student API. Uploaded PDFs are private until approved and remain behind signed, short-lived URLs afterwards. There are no ads, trackers or analytics; OCR assets should be self-hosted if a strict no-third-party-request policy is required.
 
 ## Known limitations
 

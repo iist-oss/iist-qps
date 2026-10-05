@@ -19,7 +19,8 @@ Deno.serve(async (req) => {
     { auth: { persistSession: false } });
 
   const rec = payload.record ?? {};
-  const label = [rec.course_code, rec.course_name].filter(Boolean).join(" ") || "a paper";
+  const rawLabel = [rec.course_code, rec.course_name].filter(Boolean).join(" ") || "a paper";
+  const label = rawLabel.replace(/[\u0000-\u001F\u007F]/g, " ").replace(/\s+/g, " ").trim().slice(0, 240) || "a paper";
   const site = (Deno.env.get("SITE_URL") ?? "").replace(/\/$/, "");
   const reviewUrl = site ? `${site}/#/admin` : "";
 
