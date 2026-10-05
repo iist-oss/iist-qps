@@ -1,0 +1,11 @@
+{
+  "name": "campus-qps-processing-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "process": "node process-jobs.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.45.0"
+  }
+}

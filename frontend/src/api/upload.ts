@@ -41,16 +41,7 @@ export async function uploadPaper(file: File, uid: string, d: UploadDetails, wan
   }
 
   const newId = (ins.data as unknown as { id: number } | null)?.id ?? null;
-  if (newId !== null) {
-    const job = await supabase.rpc("enqueue_processing_job", {
-      p_paper_id: newId,
-      p_job_type: "validate_pdf",
-    });
-    if (job.error) {
-      console.error("queue job", job.error.message);
-      // The paper remains safely pending. A server-side sweeper can enqueue jobs later.
-    }
-  }
+
 
   return { ok: true, id: wantId ? newId : null };
 }
