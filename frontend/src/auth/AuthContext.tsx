@@ -2,7 +2,6 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { useNavigate } from "react-router-dom";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
-import { university } from "../config/university";
 import { friendlyAuthError, looksLikeEmail, normalizeEmail } from "../lib/email";
 
 interface AuthState {
@@ -51,11 +50,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sendCode: async (raw) => {
       const email = normalizeEmail(raw);
       if (!looksLikeEmail(email)) return "Enter a valid email address.";
-      const { data: allowed, error: rpcErr } = await supabase.rpc("email_domain_ok", { p_email: email });
-      if (!rpcErr && allowed === false) {
-        const list = university.allowedEmailDomains.map((d) => "@" + d).join(" or ");
-        return `Only ${list} email addresses can sign in.`;
-      }
+      // Do not expose the server-side allow-list through an anonymous probing RPC.
+      // The auth trigger remains the authoritative enforcement point.
       const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
       if (error) console.error(error.message);
       return error ? friendlyAuthError(error.message) : null;

@@ -11,6 +11,6 @@ jobs:
     steps:
       - if: ${{ env.URL != '' && env.KEY != '' }}
         run: |
-          curl -fsS -X POST "$URL/rest/v1/rpc/get_stats" \
+          curl -fsS -X POST "$URL/rest/v1/rpc/ping" \
             -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
             -H "Content-Type: application/json" -d '{}'

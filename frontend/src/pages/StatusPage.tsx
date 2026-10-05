@@ -31,7 +31,7 @@ export default function StatusPage() {
     const out: string[] = [];
     out.push(await probe("Auth health", "/auth/v1/health"));
     out.push(await probe("Auth settings", "/auth/v1/settings"));
-    out.push(await probe("Stats (get_stats)", "/rest/v1/rpc/get_stats", { method: "POST", body: "{}" }));
+    out.push(await probe("Database ping", "/rest/v1/rpc/ping", { method: "POST", body: "{}" }));
     setLines(out); setBusy(false);
   }
 
